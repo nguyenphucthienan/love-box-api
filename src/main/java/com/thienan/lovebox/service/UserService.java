@@ -7,4 +7,6 @@ public interface UserService {
     String authenticateUser(String usernameOrEmail, String password);
 
     UserDto createUser(UserDto user);
+
+    UserDto getUserById(Long id);
 }

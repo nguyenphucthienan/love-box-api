@@ -39,8 +39,8 @@ public class AuthController {
         UserDto userDto = modelMapper.map(userSignUpRequest, UserDto.class);
 
         UserDto createdUser = userService.createUser(userDto);
-        UserDetailResponse returnUser = modelMapper.map(createdUser, UserDetailResponse.class);
+        UserDetailResponse userDetailResponse = modelMapper.map(createdUser, UserDetailResponse.class);
 
-        return ResponseEntity.ok(returnUser);
+        return ResponseEntity.ok(userDetailResponse);
     }
 }

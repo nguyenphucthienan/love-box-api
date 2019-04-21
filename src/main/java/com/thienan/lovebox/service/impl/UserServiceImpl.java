@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +70,18 @@ public class UserServiceImpl implements UserService {
 
         UserEntity storedUser = userRepository.save(userEntity);
         UserDto returnUser = modelMapper.map(storedUser, UserDto.class);
+
+        return returnUser;
+    }
+
+    @Override
+    public UserDto getUserById(Long id) {
+        UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("User with ID " + id + " not found")
+        );
+
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto returnUser = modelMapper.map(userEntity, UserDto.class);
 
         return returnUser;
     }
