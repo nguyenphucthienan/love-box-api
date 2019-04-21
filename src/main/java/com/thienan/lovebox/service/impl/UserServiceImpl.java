@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        if (userRepository.findByUsernameOrEmail(userDto.getUsername(), userDto.getEmail()) != null) {
+        if (userRepository.findByUsernameOrEmail(userDto.getUsername(), userDto.getEmail()).isPresent()) {
             throw new UserServiceException("Email already exists");
         }
 
@@ -60,11 +60,8 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity = modelMapper.map(userDto, UserEntity.class);
         userEntity.setPassword(bCryptPasswordEncoder.encode(userDto.getPassword()));
 
-        RoleEntity userRoleEntity = roleRepository.findByName(RoleName.ROLE_USER);
-
-        if (userRoleEntity == null) {
-            throw new UserServiceException("Role not found");
-        }
+        RoleEntity userRoleEntity = roleRepository.findByName(RoleName.ROLE_USER)
+                .orElseThrow(() -> new UserServiceException("Role not found"));
 
         userEntity.setRoles(Collections.singleton(userRoleEntity));
 
