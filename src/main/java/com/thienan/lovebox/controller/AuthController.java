@@ -1,0 +1,46 @@
+package com.thienan.lovebox.controller;
+
+import com.thienan.lovebox.payload.request.UserSignInRequest;
+import com.thienan.lovebox.payload.request.UserSignUpRequest;
+import com.thienan.lovebox.payload.response.JwtAuthenticationResponse;
+import com.thienan.lovebox.payload.response.UserDetailResponse;
+import com.thienan.lovebox.service.UserService;
+import com.thienan.lovebox.shared.dto.UserDto;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    @Autowired
+    UserService userService;
+
+    @PostMapping("/sign-in")
+    public ResponseEntity<?> signIn(@Valid @RequestBody UserSignInRequest userSignInRequest) {
+        String jwt = userService.authenticateUser(
+                userSignInRequest.getUsernameOrEmail(),
+                userSignInRequest.getPassword()
+        );
+
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+    }
+
+    @PostMapping("/sign-up")
+    public ResponseEntity<UserDetailResponse> signUp(@Valid @RequestBody UserSignUpRequest userSignUpRequest) {
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto userDto = modelMapper.map(userSignUpRequest, UserDto.class);
+
+        UserDto createdUser = userService.createUser(userDto);
+        UserDetailResponse returnUser = modelMapper.map(createdUser, UserDetailResponse.class);
+
+        return ResponseEntity.ok(returnUser);
+    }
+}
