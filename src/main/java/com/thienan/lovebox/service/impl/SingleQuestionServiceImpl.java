@@ -110,6 +110,18 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         return returnQuestion;
     }
 
+    @Override
+    public void deleteQuestion(Long id) {
+        SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        if (singleQuestionEntity.isAnswered()) {
+            throw new SingleQuestionServiceException("Single question has been answered");
+        }
+
+        singleQuestionRepository.delete(singleQuestionEntity);
+    }
+
     private void validatePageNumberAndSize(int page, int size) {
         if (page < 0) {
             throw new BadRequestException("Page number cannot be less than zero.");

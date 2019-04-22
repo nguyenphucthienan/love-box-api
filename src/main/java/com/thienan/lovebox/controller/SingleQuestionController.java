@@ -4,6 +4,7 @@ import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.ForbiddenException;
 import com.thienan.lovebox.payload.request.AnswerSingleQuestionRequest;
 import com.thienan.lovebox.payload.request.AskSingleQuestionRequest;
+import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.utils.PagedResponse;
 import com.thienan.lovebox.payload.response.SingleQuestionResponse;
 import com.thienan.lovebox.security.CurrentUser;
@@ -15,6 +16,7 @@ import com.thienan.lovebox.shared.dto.UserDto;
 import com.thienan.lovebox.utils.AppConstants;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,11 +81,11 @@ public class SingleQuestionController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     public SingleQuestionResponse getSingleQuestion(@CurrentUser UserPrincipal currentUser,
-                                                    @PathVariable("userId") Long userId,
+                                                    @PathVariable("userId") Long answererId,
                                                     @PathVariable("id") Long id) {
         SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
 
-        if (!singleQuestionDto.getAnswerer().getId().equals(userId)) {
+        if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
             throw new BadRequestException("User ID and Question ID do not match");
         }
 
@@ -143,5 +145,26 @@ public class SingleQuestionController {
 
         SingleQuestionResponse singleQuestionResponse = modelMapper.map(unansweredSingleQuestionDto, SingleQuestionResponse.class);
         return singleQuestionResponse;
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> deleteQuestion(@CurrentUser UserPrincipal currentUser,
+                                            @PathVariable("userId") Long answererId,
+                                            @PathVariable("id") Long id) {
+        SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot delete this question");
+        }
+
+        singleQuestionService.deleteQuestion(id);
+
+        return ResponseEntity.ok()
+                .body(new ApiResponse(true, "Delete single question successfully"));
     }
 }

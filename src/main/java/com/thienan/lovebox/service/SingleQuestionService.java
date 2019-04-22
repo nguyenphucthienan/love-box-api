@@ -14,4 +14,6 @@ public interface SingleQuestionService {
     SingleQuestionDto answerQuestion(Long id, String answerText);
 
     SingleQuestionDto unanswerQuestion(Long id);
+
+    void deleteQuestion(Long id);
 }
