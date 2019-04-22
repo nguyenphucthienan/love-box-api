@@ -2,6 +2,7 @@ package com.thienan.lovebox.controller;
 
 import com.thienan.lovebox.payload.request.UserSignInRequest;
 import com.thienan.lovebox.payload.request.UserSignUpRequest;
+import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.payload.response.JwtAuthenticationResponse;
 import com.thienan.lovebox.payload.response.UserDetailResponse;
 import com.thienan.lovebox.security.CurrentUser;
@@ -34,7 +35,17 @@ public class AuthController {
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<UserDetailResponse> signUp(@Valid @RequestBody UserSignUpRequest userSignUpRequest) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody UserSignUpRequest userSignUpRequest) {
+        if (userService.checkUsernameAvailability(userSignUpRequest.getUsername())) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, "Username already taken"));
+        }
+
+        if (userService.checkEmailAvailability(userSignUpRequest.getEmail())) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(false, "Email address already in use"));
+        }
+
         ModelMapper modelMapper = new ModelMapper();
         UserDto userDto = modelMapper.map(userSignUpRequest, UserDto.class);
 

@@ -6,7 +6,11 @@ public interface UserService {
 
     String authenticateUser(String usernameOrEmail, String password);
 
+    UserDto getUserById(Long id);
+
     UserDto createUser(UserDto user);
 
-    UserDto getUserById(Long id);
+    Boolean checkUsernameAvailability(String username);
+
+    Boolean checkEmailAvailability(String email);
 }

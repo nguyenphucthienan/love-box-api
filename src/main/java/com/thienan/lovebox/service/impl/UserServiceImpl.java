@@ -72,6 +72,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Boolean checkUsernameAvailability(String username) {
+        return !userRepository.existsByUsername(username);
+    }
+
+    @Override
+    public Boolean checkEmailAvailability(String email) {
+        return !userRepository.existsByEmail(email);
+    }
+
+    @Override
     public UserDto getUserById(Long id) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
                 new UsernameNotFoundException("User with ID " + id + " not found")
