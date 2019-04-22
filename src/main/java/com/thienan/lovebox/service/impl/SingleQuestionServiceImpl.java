@@ -1,6 +1,9 @@
 package com.thienan.lovebox.service.impl;
 
 import com.thienan.lovebox.entity.SingleQuestionEntity;
+import com.thienan.lovebox.exception.BadRequestException;
+import com.thienan.lovebox.utils.AppConstants;
+import com.thienan.lovebox.utils.PagedResponse;
 import com.thienan.lovebox.repository.SingleQuestionRepository;
 import com.thienan.lovebox.service.SingleQuestionService;
 import com.thienan.lovebox.shared.dto.SingleQuestionDto;
@@ -21,21 +24,25 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
     SingleQuestionRepository singleQuestionRepository;
 
     @Override
-    public List<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, int page, int limit) {
-        Pageable pageRequest = PageRequest.of(page, limit);
+    public PagedResponse<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, int page, int size) {
+        validatePageNumberAndSize(page, size);
+        Pageable pageRequest = PageRequest.of(page, size);
+
         Page<SingleQuestionEntity> questionsPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageRequest);
 
         List<SingleQuestionEntity> questions = questionsPage.getContent();
-        List<SingleQuestionDto> returnQuestions = new ArrayList<>();
+        List<SingleQuestionDto> questionDtos = new ArrayList<>();
 
         ModelMapper modelMapper = new ModelMapper();
 
         for (SingleQuestionEntity singleQuestionEntity : questions) {
             SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
-            returnQuestions.add(singleQuestionDto);
+            questionDtos.add(singleQuestionDto);
         }
 
-        return returnQuestions;
+        return new PagedResponse<>(questionDtos, questionsPage.getNumber(), questionsPage.getSize(),
+                questionsPage.getTotalElements(), questionsPage.getTotalPages(),
+                questionsPage.isFirst(), questionsPage.isLast());
     }
 
     @Override
@@ -47,5 +54,15 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
         SingleQuestionDto returnQuestion = modelMapper.map(storedQuestion, SingleQuestionDto.class);
         return returnQuestion;
+    }
+
+    private void validatePageNumberAndSize(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page number cannot be less than zero.");
+        }
+
+        if (size > AppConstants.MAX_PAGE_SIZE) {
+            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+        }
     }
 }

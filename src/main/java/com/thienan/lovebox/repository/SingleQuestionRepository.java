@@ -14,6 +14,6 @@ public interface SingleQuestionRepository extends JpaRepository<SingleQuestionEn
     @Query(value = "select q from SingleQuestionEntity q where q.answerer.id = :userId and q.answered = :answered",
             countQuery = "select count(q) from SingleQuestionEntity q where q.answerer.id = :userId and q.answered = :answered")
     Page<SingleQuestionEntity> findAllQuestionsByUserId(@Param("userId") Long userId,
-                                                                @Param("answered") boolean answered,
-                                                                Pageable pageableRequest);
+                                                        @Param("answered") boolean answered,
+                                                        Pageable pageableRequest);
 }
