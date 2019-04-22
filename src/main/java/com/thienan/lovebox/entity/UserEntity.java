@@ -35,6 +35,15 @@ public class UserEntity extends DateAudit {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<RoleEntity> roles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_follows",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id"))
+    private Set<UserEntity> following;
+
+    @ManyToMany(mappedBy = "following")
+    private Set<UserEntity> followers;
+
     public UserEntity() {
     }
 
@@ -44,6 +53,8 @@ public class UserEntity extends DateAudit {
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.following = new HashSet<>();
+        this.followers = new HashSet<>();
     }
 
     public Long getId() {
@@ -100,5 +111,39 @@ public class UserEntity extends DateAudit {
 
     public void setRoles(Set<RoleEntity> roles) {
         this.roles = roles;
+    }
+
+    public Set<UserEntity> getFollowing() {
+        return following;
+    }
+
+    public void setFollowing(Set<UserEntity> following) {
+        this.following = following;
+    }
+
+    public Set<UserEntity> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<UserEntity> followers) {
+        this.followers = followers;
+    }
+
+    private void addFollower(UserEntity user) {
+        followers.add(user);
+    }
+
+    private void removeFollower(UserEntity user) {
+        followers.remove(user);
+    }
+
+    public void addFollowing(UserEntity user) {
+        following.add(user);
+        user.addFollower(this);
+    }
+
+    public void removeFollowing(UserEntity user) {
+        following.remove(user);
+        user.removeFollower(this);
     }
 }

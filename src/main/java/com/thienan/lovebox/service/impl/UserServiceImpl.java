@@ -50,6 +50,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto getUserById(Long id) {
+        UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("User with ID " + id + " not found")
+        );
+
+        ModelMapper modelMapper = new ModelMapper();
+        UserDto returnUser = modelMapper.map(userEntity, UserDto.class);
+
+        return returnUser;
+    }
+
+    @Override
     public UserDto createUser(UserDto userDto) {
         if (userRepository.findByUsernameOrEmail(userDto.getUsername(), userDto.getEmail()).isPresent()) {
             throw new UserServiceException("Email already exists");
@@ -82,14 +94,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(Long id) {
+    public void followOrUnfollowUser(Long id, Long idToFollowOrUnfollow) {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
                 new UsernameNotFoundException("User with ID " + id + " not found")
         );
 
-        ModelMapper modelMapper = new ModelMapper();
-        UserDto returnUser = modelMapper.map(userEntity, UserDto.class);
+        UserEntity userEntityToFollowOrUnfollow = userRepository.findById(idToFollowOrUnfollow).orElseThrow(() ->
+                new UsernameNotFoundException("User with ID " + id + " not found")
+        );
 
-        return returnUser;
+        if (!userEntity.getFollowing().contains(userEntityToFollowOrUnfollow)) {
+            userEntity.addFollowing(userEntityToFollowOrUnfollow);
+        } else {
+            userEntity.removeFollowing(userEntityToFollowOrUnfollow);
+        }
+
+        userRepository.save(userEntity);
     }
 }

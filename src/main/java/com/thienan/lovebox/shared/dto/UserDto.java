@@ -11,6 +11,8 @@ public class UserDto {
     private String lastName;
     private String password;
     private Set<RoleDto> roles;
+    private Set<UserDto> following;
+    private Set<UserDto> followers;
 
     public Long getId() {
         return id;
@@ -66,5 +68,21 @@ public class UserDto {
 
     public void setRoles(Set<RoleDto> roles) {
         this.roles = roles;
+    }
+
+    public Set<UserDto> getFollowing() {
+        return following;
+    }
+
+    public void setFollowing(Set<UserDto> following) {
+        this.following = following;
+    }
+
+    public Set<UserDto> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<UserDto> followers) {
+        this.followers = followers;
     }
 }
