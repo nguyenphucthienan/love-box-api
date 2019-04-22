@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,8 +27,8 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
     @Override
     public PagedResponse<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, int page, int size) {
         validatePageNumberAndSize(page, size);
-        Pageable pageRequest = PageRequest.of(page, size);
 
+        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
         Page<SingleQuestionEntity> questionsPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageRequest);
 
         List<SingleQuestionEntity> questions = questionsPage.getContent();

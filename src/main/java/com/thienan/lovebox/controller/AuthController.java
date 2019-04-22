@@ -4,15 +4,15 @@ import com.thienan.lovebox.payload.request.UserSignInRequest;
 import com.thienan.lovebox.payload.request.UserSignUpRequest;
 import com.thienan.lovebox.payload.response.JwtAuthenticationResponse;
 import com.thienan.lovebox.payload.response.UserDetailResponse;
+import com.thienan.lovebox.security.CurrentUser;
+import com.thienan.lovebox.security.UserPrincipal;
 import com.thienan.lovebox.service.UserService;
 import com.thienan.lovebox.shared.dto.UserDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -42,5 +42,14 @@ public class AuthController {
         UserDetailResponse userDetailResponse = modelMapper.map(createdUser, UserDetailResponse.class);
 
         return ResponseEntity.ok(userDetailResponse);
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public UserDetailResponse getCurrentUser(@CurrentUser UserPrincipal currentUser) {
+        ModelMapper modelMapper = new ModelMapper();
+        UserDetailResponse userDetailResponse = modelMapper.map(currentUser, UserDetailResponse.class);
+
+        return userDetailResponse;
     }
 }
