@@ -13,12 +13,12 @@ public class SingleQuestionEntity extends DateAudit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "questioner_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "questioner_id")
     private UserEntity questioner;
 
-    @OneToOne
-    @JoinColumn(name = "answerer_id", referencedColumnName = "id")
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "answerer_id")
     private UserEntity answerer;
 
     @Column(nullable = false)
