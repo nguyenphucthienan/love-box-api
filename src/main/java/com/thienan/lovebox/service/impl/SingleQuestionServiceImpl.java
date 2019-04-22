@@ -2,6 +2,7 @@ package com.thienan.lovebox.service.impl;
 
 import com.thienan.lovebox.entity.SingleQuestionEntity;
 import com.thienan.lovebox.exception.BadRequestException;
+import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
 import com.thienan.lovebox.utils.AppConstants;
 import com.thienan.lovebox.utils.PagedResponse;
 import com.thienan.lovebox.repository.SingleQuestionRepository;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +49,17 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
     }
 
     @Override
+    public SingleQuestionDto getQuestion(Long id) {
+        ModelMapper modelMapper = new ModelMapper();
+
+        SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        SingleQuestionDto returnQuestion = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
+        return returnQuestion;
+    }
+
+    @Override
     public SingleQuestionDto createQuestion(SingleQuestionDto singleQuestionDto) {
         ModelMapper modelMapper = new ModelMapper();
 
@@ -54,6 +67,26 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         SingleQuestionEntity storedQuestion = singleQuestionRepository.save(singleQuestionEntity);
 
         SingleQuestionDto returnQuestion = modelMapper.map(storedQuestion, SingleQuestionDto.class);
+        return returnQuestion;
+    }
+
+    @Override
+    public SingleQuestionDto answeredQuestion(Long id, String answerText) {
+        SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        if (singleQuestionEntity.isAnswered()) {
+            throw new SingleQuestionServiceException("Single question has been answered");
+        }
+
+        singleQuestionRepository.answerQuestion(id, Instant.now(), answerText);
+
+        SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        ModelMapper modelMapper = new ModelMapper();
+        SingleQuestionDto returnQuestion = modelMapper.map(answeredSingleQuestionEntity, SingleQuestionDto.class);
+
         return returnQuestion;
     }
 

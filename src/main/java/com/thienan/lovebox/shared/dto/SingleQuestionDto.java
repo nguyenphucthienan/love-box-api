@@ -1,16 +1,17 @@
 package com.thienan.lovebox.shared.dto;
 
-import java.util.Date;
+import java.time.Instant;
 
 public class SingleQuestionDto {
 
     private Long id;
+    private Instant createdAt;
     private UserDto questioner;
     private UserDto answerer;
     private String questionText;
     private String answerText;
     private boolean answered;
-    private Date answeredAt;
+    private Instant answeredAt;
 
     public Long getId() {
         return id;
@@ -18,6 +19,14 @@ public class SingleQuestionDto {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public UserDto getQuestioner() {
@@ -60,11 +69,11 @@ public class SingleQuestionDto {
         this.answered = answered;
     }
 
-    public Date getAnsweredAt() {
+    public Instant getAnsweredAt() {
         return answeredAt;
     }
 
-    public void setAnsweredAt(Date answeredAt) {
+    public void setAnsweredAt(Instant answeredAt) {
         this.answeredAt = answeredAt;
     }
 }

@@ -1,16 +1,17 @@
 package com.thienan.lovebox.payload.response;
 
-import java.util.Date;
+import java.time.Instant;
 
-public class SingleQuestionReponse {
+public class SingleQuestionResponse {
 
     private Long id;
+    private Instant createdAt;
     private UserDetailResponse questioner;
     private UserDetailResponse answerer;
     private String questionText;
     private String answerText;
     private boolean answered;
-    private Date answeredAt;
+    private Instant answeredAt;
 
     public Long getId() {
         return id;
@@ -18,6 +19,14 @@ public class SingleQuestionReponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public UserDetailResponse getQuestioner() {
@@ -60,11 +69,11 @@ public class SingleQuestionReponse {
         this.answered = answered;
     }
 
-    public Date getAnsweredAt() {
+    public Instant getAnsweredAt() {
         return answeredAt;
     }
 
-    public void setAnsweredAt(Date answeredAt) {
+    public void setAnsweredAt(Instant answeredAt) {
         this.answeredAt = answeredAt;
     }
 }

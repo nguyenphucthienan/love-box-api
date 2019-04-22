@@ -3,7 +3,7 @@ package com.thienan.lovebox.entity;
 import com.thienan.lovebox.entity.audit.DateAudit;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.Instant;
 
 @Entity
 @Table(name = "single_questions")
@@ -28,13 +28,13 @@ public class SingleQuestionEntity extends DateAudit {
 
     private boolean answered;
 
-    private Date answeredAt;
+    private Instant answeredAt;
 
     public SingleQuestionEntity() {
     }
 
-    public SingleQuestionEntity(UserEntity questioner, UserEntity answerer, String questionText,
-                                String answerText, boolean answered, Date answeredAt) {
+    public SingleQuestionEntity(UserEntity questioner, UserEntity answerer,
+                                String questionText, String answerText, boolean answered, Instant answeredAt) {
         this.questioner = questioner;
         this.answerer = answerer;
         this.questionText = questionText;
@@ -91,11 +91,11 @@ public class SingleQuestionEntity extends DateAudit {
         this.answered = answered;
     }
 
-    public Date getAnsweredAt() {
+    public Instant getAnsweredAt() {
         return answeredAt;
     }
 
-    public void setAnsweredAt(Date answeredAt) {
+    public void setAnsweredAt(Instant answeredAt) {
         this.answeredAt = answeredAt;
     }
 }
