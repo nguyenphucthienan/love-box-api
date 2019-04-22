@@ -11,5 +11,7 @@ public interface SingleQuestionService {
 
     SingleQuestionDto createQuestion(SingleQuestionDto singleQuestionDto);
 
-    SingleQuestionDto answeredQuestion(Long id, String answerText);
+    SingleQuestionDto answerQuestion(Long id, String answerText);
+
+    SingleQuestionDto unanswerQuestion(Long id);
 }

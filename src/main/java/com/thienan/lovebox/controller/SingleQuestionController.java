@@ -1,5 +1,6 @@
 package com.thienan.lovebox.controller;
 
+import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.ForbiddenException;
 import com.thienan.lovebox.payload.request.AnswerSingleQuestionRequest;
 import com.thienan.lovebox.payload.request.AskSingleQuestionRequest;
@@ -75,22 +76,72 @@ public class SingleQuestionController {
         return singleQuestionResponse;
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public SingleQuestionResponse getSingleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                    @PathVariable("userId") Long userId,
+                                                    @PathVariable("id") Long id) {
+        SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(userId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if ((!singleQuestionDto.getAnswerer().getId().equals(currentUser.getId()) && !singleQuestionDto.isAnswered())) {
+            throw new BadRequestException("Question has not been answered");
+        }
+
+        ModelMapper modelMapper = new ModelMapper();
+        SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
+
+        return singleQuestionResponse;
+    }
+
     @PostMapping("/{id}/answer")
     @PreAuthorize("hasRole('USER')")
     public SingleQuestionResponse answerSingleQuestion(@CurrentUser UserPrincipal currentUser,
                                                        @PathVariable("userId") Long answererId,
                                                        @PathVariable("id") Long id,
                                                        @Valid @RequestBody AnswerSingleQuestionRequest answerSingleQuestionRequest) {
-        if (!answererId.equals(currentUser.getId())) {
+        SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(currentUser.getId())) {
             throw new ForbiddenException("Cannot answer this question");
         }
 
-        SingleQuestionDto singleQuestionDto = singleQuestionService
-                .answeredQuestion(id, answerSingleQuestionRequest.getAnswerText());
+        SingleQuestionDto answeredSingleQuestionDto = singleQuestionService
+                .answerQuestion(id, answerSingleQuestionRequest.getAnswerText());
 
         ModelMapper modelMapper = new ModelMapper();
 
-        SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
+        SingleQuestionResponse singleQuestionResponse = modelMapper.map(answeredSingleQuestionDto, SingleQuestionResponse.class);
+        return singleQuestionResponse;
+    }
+
+    @PostMapping("/{id}/unanswer")
+    @PreAuthorize("hasRole('USER')")
+    public SingleQuestionResponse unanswerQuestion(@CurrentUser UserPrincipal currentUser,
+                                                   @PathVariable("userId") Long answererId,
+                                                   @PathVariable("id") Long id) {
+        SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot unanswer this question");
+        }
+
+        SingleQuestionDto unansweredSingleQuestionDto = singleQuestionService.unanswerQuestion(id);
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        SingleQuestionResponse singleQuestionResponse = modelMapper.map(unansweredSingleQuestionDto, SingleQuestionResponse.class);
         return singleQuestionResponse;
     }
 }

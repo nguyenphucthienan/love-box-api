@@ -26,4 +26,10 @@ public interface SingleQuestionRepository extends JpaRepository<SingleQuestionEn
     @Query(value = "update SingleQuestionEntity q set q.updatedAt = :answeredAt, q.answered = true, " +
             "q.answeredAt = :answeredAt, q.answerText = :answerText where q.id = :id")
     void answerQuestion(@Param("id") Long id, @Param("answeredAt") Instant answeredAt, @Param("answerText") String answerText);
+
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = "update SingleQuestionEntity q set q.updatedAt = :unansweredAt, q.answered = false, " +
+            "q.answeredAt = null, q.answerText = null where q.id = :id")
+    void unanswerQuestion(@Param("id") Long id, @Param("unansweredAt") Instant unansweredAt);
 }

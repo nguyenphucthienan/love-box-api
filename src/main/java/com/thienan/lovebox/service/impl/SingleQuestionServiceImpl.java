@@ -71,7 +71,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
     }
 
     @Override
-    public SingleQuestionDto answeredQuestion(Long id, String answerText) {
+    public SingleQuestionDto answerQuestion(Long id, String answerText) {
         SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
@@ -80,6 +80,26 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         }
 
         singleQuestionRepository.answerQuestion(id, Instant.now(), answerText);
+
+        SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        ModelMapper modelMapper = new ModelMapper();
+        SingleQuestionDto returnQuestion = modelMapper.map(answeredSingleQuestionEntity, SingleQuestionDto.class);
+
+        return returnQuestion;
+    }
+
+    @Override
+    public SingleQuestionDto unanswerQuestion(Long id) {
+        SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        if (!singleQuestionEntity.isAnswered()) {
+            throw new SingleQuestionServiceException("Single question has not been answered");
+        }
+
+        singleQuestionRepository.unanswerQuestion(id, Instant.now());
 
         SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
