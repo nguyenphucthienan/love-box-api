@@ -1,8 +1,10 @@
 package com.thienan.lovebox.service.impl;
 
 import com.thienan.lovebox.entity.SingleQuestionEntity;
+import com.thienan.lovebox.entity.UserEntity;
 import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
+import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.utils.AppConstants;
 import com.thienan.lovebox.utils.PagedResponse;
 import com.thienan.lovebox.repository.SingleQuestionRepository;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -22,6 +25,9 @@ import java.util.List;
 
 @Service
 public class SingleQuestionServiceImpl implements SingleQuestionService {
+
+    @Autowired
+    UserRepository userRepository;
 
     @Autowired
     SingleQuestionRepository singleQuestionRepository;
@@ -106,6 +112,29 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
         ModelMapper modelMapper = new ModelMapper();
         SingleQuestionDto returnQuestion = modelMapper.map(answeredSingleQuestionEntity, SingleQuestionDto.class);
+
+        return returnQuestion;
+    }
+
+    @Override
+    public SingleQuestionDto loveOrUnloveQuestion(Long id, Long userId) {
+        SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
+
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() ->
+                new UsernameNotFoundException("User with ID " + id + " not found")
+        );
+
+        if (!singleQuestionEntity.getLoves().contains(userEntity)) {
+            singleQuestionEntity.getLoves().add(userEntity);
+        } else {
+            singleQuestionEntity.getLoves().remove(userEntity);
+        }
+
+        SingleQuestionEntity lovedSingleQuestionEntity = singleQuestionRepository.save(singleQuestionEntity);
+
+        ModelMapper modelMapper = new ModelMapper();
+        SingleQuestionDto returnQuestion = modelMapper.map(lovedSingleQuestionEntity, SingleQuestionDto.class);
 
         return returnQuestion;
     }

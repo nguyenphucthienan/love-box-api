@@ -4,6 +4,8 @@ import com.thienan.lovebox.entity.audit.DateAudit;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "single_questions")
@@ -30,6 +32,12 @@ public class SingleQuestionEntity extends DateAudit {
 
     private Instant answeredAt;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "single_question_loves",
+            joinColumns = @JoinColumn(name = "single_question_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<UserEntity> loves;
+
     public SingleQuestionEntity() {
     }
 
@@ -41,6 +49,7 @@ public class SingleQuestionEntity extends DateAudit {
         this.answerText = answerText;
         this.answered = answered;
         this.answeredAt = answeredAt;
+        this.loves = new HashSet<>();
     }
 
     public Long getId() {
@@ -97,5 +106,13 @@ public class SingleQuestionEntity extends DateAudit {
 
     public void setAnsweredAt(Instant answeredAt) {
         this.answeredAt = answeredAt;
+    }
+
+    public Set<UserEntity> getLoves() {
+        return loves;
+    }
+
+    public void setLoves(Set<UserEntity> loves) {
+        this.loves = loves;
     }
 }

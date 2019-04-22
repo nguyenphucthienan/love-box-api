@@ -126,9 +126,9 @@ public class SingleQuestionController {
 
     @PostMapping("/{id}/unanswer")
     @PreAuthorize("hasRole('USER')")
-    public SingleQuestionResponse unanswerQuestion(@CurrentUser UserPrincipal currentUser,
-                                                   @PathVariable("userId") Long answererId,
-                                                   @PathVariable("id") Long id) {
+    public SingleQuestionResponse unanswerSingleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                         @PathVariable("userId") Long answererId,
+                                                         @PathVariable("id") Long id) {
         SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
 
         if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
@@ -147,11 +147,34 @@ public class SingleQuestionController {
         return singleQuestionResponse;
     }
 
+    @PostMapping("/{id}/love")
+    @PreAuthorize("hasRole('USER')")
+    public SingleQuestionResponse loveOrUnloveSingleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                             @PathVariable("userId") Long answererId,
+                                                             @PathVariable("id") Long id) {
+        SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
+
+        if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!singleQuestionDto.isAnswered()) {
+            throw new BadRequestException("Question has not been answered");
+        }
+
+        SingleQuestionDto lovedSingleQuestionDto = singleQuestionService.loveOrUnloveQuestion(id, currentUser.getId());
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        SingleQuestionResponse singleQuestionResponse = modelMapper.map(lovedSingleQuestionDto, SingleQuestionResponse.class);
+        return singleQuestionResponse;
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> deleteQuestion(@CurrentUser UserPrincipal currentUser,
-                                            @PathVariable("userId") Long answererId,
-                                            @PathVariable("id") Long id) {
+    public ResponseEntity<?> deleteSingleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                  @PathVariable("userId") Long answererId,
+                                                  @PathVariable("id") Long id) {
         SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
 
         if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {

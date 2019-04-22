@@ -15,5 +15,7 @@ public interface SingleQuestionService {
 
     SingleQuestionDto unanswerQuestion(Long id);
 
+    SingleQuestionDto loveOrUnloveQuestion(Long id, Long userId);
+
     void deleteQuestion(Long id);
 }

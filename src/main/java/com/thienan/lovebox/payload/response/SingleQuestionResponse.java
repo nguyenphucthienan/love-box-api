@@ -1,17 +1,19 @@
 package com.thienan.lovebox.payload.response;
 
 import java.time.Instant;
+import java.util.Set;
 
 public class SingleQuestionResponse {
 
     private Long id;
     private Instant createdAt;
-    private UserDetailResponse questioner;
-    private UserDetailResponse answerer;
+    private UserBriefDetailResponse questioner;
+    private UserBriefDetailResponse answerer;
     private String questionText;
     private String answerText;
     private boolean answered;
     private Instant answeredAt;
+    private Set<UserBriefDetailResponse> loves;
 
     public Long getId() {
         return id;
@@ -29,19 +31,19 @@ public class SingleQuestionResponse {
         this.createdAt = createdAt;
     }
 
-    public UserDetailResponse getQuestioner() {
+    public UserBriefDetailResponse getQuestioner() {
         return questioner;
     }
 
-    public void setQuestioner(UserDetailResponse questioner) {
+    public void setQuestioner(UserBriefDetailResponse questioner) {
         this.questioner = questioner;
     }
 
-    public UserDetailResponse getAnswerer() {
+    public UserBriefDetailResponse getAnswerer() {
         return answerer;
     }
 
-    public void setAnswerer(UserDetailResponse answerer) {
+    public void setAnswerer(UserBriefDetailResponse answerer) {
         this.answerer = answerer;
     }
 
@@ -75,5 +77,13 @@ public class SingleQuestionResponse {
 
     public void setAnsweredAt(Instant answeredAt) {
         this.answeredAt = answeredAt;
+    }
+
+    public Set<UserBriefDetailResponse> getLoves() {
+        return loves;
+    }
+
+    public void setLoves(Set<UserBriefDetailResponse> loves) {
+        this.loves = loves;
     }
 }
