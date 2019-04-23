@@ -111,4 +111,13 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(userEntity);
     }
+
+    @Override
+    public Boolean checkUserHasBff(Long id) {
+        UserEntity userEntity = userRepository.findById(id).orElseThrow(() ->
+                new UsernameNotFoundException("User with ID " + id + " not found")
+        );
+
+        return userEntity.getBffDetail() != null;
+    }
 }

@@ -15,4 +15,6 @@ public interface UserService {
     Boolean checkEmailAvailability(String email);
 
     void followOrUnfollowUser(Long id, Long idToFollowOrUnfollow);
+
+    Boolean checkUserHasBff(Long id);
 }

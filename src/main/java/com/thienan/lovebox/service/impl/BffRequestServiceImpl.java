@@ -1,7 +1,10 @@
 package com.thienan.lovebox.service.impl;
 
+import com.thienan.lovebox.entity.BffDetailEntity;
 import com.thienan.lovebox.entity.BffRequestEntity;
+import com.thienan.lovebox.entity.UserEntity;
 import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
+import com.thienan.lovebox.repository.BffDetailRepository;
 import com.thienan.lovebox.repository.BffRequestRepository;
 import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.service.BffRequestService;
@@ -18,6 +21,9 @@ public class BffRequestServiceImpl implements BffRequestService {
 
     @Autowired
     BffRequestRepository bffRequestRepository;
+
+    @Autowired
+    BffDetailRepository bffDetailRepository;
 
     @Override
     public BffRequestDto getBffRequest(Long id) {
@@ -39,5 +45,59 @@ public class BffRequestServiceImpl implements BffRequestService {
 
         BffRequestDto returnBffRequest = modelMapper.map(storedBffRequest, BffRequestDto.class);
         return returnBffRequest;
+    }
+
+    @Override
+    public Boolean checkBffRequestExists(Long fromUserId, Long toUserId) {
+        BffRequestEntity bffRequestEntity = bffRequestRepository.findByFromUserIdAndToUserId(fromUserId, toUserId)
+                .orElse(null);
+
+        return bffRequestEntity != null;
+    }
+
+    @Override
+    public void approveBffRequest(Long id) {
+        BffRequestEntity bffRequestEntity = bffRequestRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("BFF Request with ID " + id + " not found"));
+
+        Long fromUserId = bffRequestEntity.getFromUser().getId();
+        Long toUserId = bffRequestEntity.getToUser().getId();
+
+        UserEntity fromUser = userRepository.findById(fromUserId)
+                .orElseThrow(() -> new SingleQuestionServiceException("User with ID " + fromUserId + " not found"));
+        UserEntity toUser = userRepository.findById(toUserId)
+                .orElseThrow(() -> new SingleQuestionServiceException("User with ID " + toUserId + " not found"));
+
+        BffDetailEntity bffDetailEntity = new BffDetailEntity(fromUser, toUser, "");
+        BffDetailEntity storedBffDetailEntity = bffDetailRepository.save(bffDetailEntity);
+
+        fromUser.setBffDetail(storedBffDetailEntity);
+        toUser.setBffDetail(storedBffDetailEntity);
+
+        userRepository.save(fromUser);
+        userRepository.save(toUser);
+
+        this.deleteAllBffRequestsByUserId(toUserId);
+    }
+
+    @Override
+    public void rejectBffRequest(Long id) {
+        BffRequestEntity bffRequestEntity = bffRequestRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("BFF Request with ID " + id + " not found"));
+
+        this.deleteBffRequest(id);
+    }
+
+    @Override
+    public void deleteBffRequest(Long id) {
+        BffRequestEntity bffRequestEntity = bffRequestRepository.findById(id)
+                .orElseThrow(() -> new SingleQuestionServiceException("BFF Request with ID " + id + " not found"));
+
+        bffRequestRepository.delete(bffRequestEntity);
+    }
+
+    @Override
+    public void deleteAllBffRequestsByUserId(Long userId) {
+        bffRequestRepository.deleteAllByUserId(userId);
     }
 }

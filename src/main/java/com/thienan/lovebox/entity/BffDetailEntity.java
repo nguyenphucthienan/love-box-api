@@ -22,6 +22,9 @@ public class BffDetailEntity extends DateAudit {
 
     private String description;
 
+    public BffDetailEntity() {
+    }
+
     public BffDetailEntity(UserEntity firstUser, UserEntity secondUser, String description) {
         this.firstUser = firstUser;
         this.secondUser = secondUser;

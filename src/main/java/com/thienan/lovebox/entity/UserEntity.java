@@ -44,8 +44,8 @@ public class UserEntity extends DateAudit {
     @ManyToMany(mappedBy = "following")
     private Set<UserEntity> followers;
 
-    @OneToOne
-    @JoinColumn(name = "bff_id")
+    @ManyToOne
+    @JoinColumn(name = "bff_detail_id")
     private BffDetailEntity bffDetail;
 
     public UserEntity() {

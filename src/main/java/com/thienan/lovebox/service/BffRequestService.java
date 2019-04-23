@@ -7,4 +7,14 @@ public interface BffRequestService {
     BffRequestDto getBffRequest(Long id);
 
     BffRequestDto createBffRequest(BffRequestDto bffRequestDto);
+
+    Boolean checkBffRequestExists(Long fromUserId, Long toUserId);
+
+    void approveBffRequest(Long id);
+
+    void rejectBffRequest(Long id);
+
+    void deleteBffRequest(Long id);
+
+    void deleteAllBffRequestsByUserId(Long userId);
 }
