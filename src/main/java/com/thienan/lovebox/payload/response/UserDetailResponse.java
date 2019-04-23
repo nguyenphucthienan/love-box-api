@@ -11,6 +11,7 @@ public class UserDetailResponse {
     private String lastName;
     private Set<UserBriefDetailResponse> following;
     private Set<UserBriefDetailResponse> followers;
+    private BffDetailResponse bffDetail;
 
     public Long getId() {
         return id;
@@ -66,5 +67,13 @@ public class UserDetailResponse {
 
     public void setFollowers(Set<UserBriefDetailResponse> followers) {
         this.followers = followers;
+    }
+
+    public BffDetailResponse getBffDetail() {
+        return bffDetail;
+    }
+
+    public void setBffDetail(BffDetailResponse bffDetail) {
+        this.bffDetail = bffDetail;
     }
 }

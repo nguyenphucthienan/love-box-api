@@ -25,6 +25,9 @@ public class UserController {
         UserDto userDto = userService.getUserById(id);
 
         ModelMapper modelMapper = new ModelMapper();
+        modelMapper.typeMap(UserDto.class, UserDetailResponse.class)
+                .addMappings(mapper -> mapper.map(UserDto::getBffDetail, UserDetailResponse::setBffDetail));
+
         UserDetailResponse userDetailResponse = modelMapper.map(userDto, UserDetailResponse.class);
 
         return userDetailResponse;

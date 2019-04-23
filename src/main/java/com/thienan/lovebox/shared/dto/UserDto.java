@@ -13,6 +13,7 @@ public class UserDto {
     private Set<RoleDto> roles;
     private Set<UserDto> following;
     private Set<UserDto> followers;
+    private BffDetailDto bffDetail;
 
     public Long getId() {
         return id;
@@ -84,5 +85,13 @@ public class UserDto {
 
     public void setFollowers(Set<UserDto> followers) {
         this.followers = followers;
+    }
+
+    public BffDetailDto getBffDetail() {
+        return bffDetail;
+    }
+
+    public void setBffDetail(BffDetailDto bffDetail) {
+        this.bffDetail = bffDetail;
     }
 }
