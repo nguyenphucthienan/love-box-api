@@ -44,17 +44,20 @@ public class UserEntity extends DateAudit {
     @ManyToMany(mappedBy = "following")
     private Set<UserEntity> followers;
 
+    @OneToOne
+    @JoinColumn(name = "bff_id")
+    private BffDetailEntity bffDetail;
+
     public UserEntity() {
     }
 
-    public UserEntity(String username, String firstName, String lastName, String email, String password) {
+    public UserEntity(String username, String email, String firstName, String lastName, String password, BffDetailEntity bffDetail) {
         this.username = username;
+        this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.email = email;
         this.password = password;
-        this.following = new HashSet<>();
-        this.followers = new HashSet<>();
+        this.bffDetail = bffDetail;
     }
 
     public Long getId() {
@@ -145,5 +148,13 @@ public class UserEntity extends DateAudit {
     public void removeFollowing(UserEntity user) {
         following.remove(user);
         user.removeFollower(this);
+    }
+
+    public BffDetailEntity getBffDetail() {
+        return bffDetail;
+    }
+
+    public void setBffDetail(BffDetailEntity bffDetail) {
+        this.bffDetail = bffDetail;
     }
 }
