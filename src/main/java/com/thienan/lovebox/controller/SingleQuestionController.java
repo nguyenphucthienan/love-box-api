@@ -34,6 +34,25 @@ public class SingleQuestionController {
     @Autowired
     SingleQuestionService singleQuestionService;
 
+    @GetMapping("/news-feed")
+    @PreAuthorize("hasRole('USER')")
+    public PagedResponse<SingleQuestionResponse> getQuestionsInNewsFeed(@CurrentUser UserPrincipal currentUser,
+                                                                        @PathVariable("userId") Long userId,
+                                                                        @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
+                                                                        @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsInNewsFeed(userId, page, size);
+        List<SingleQuestionResponse> questionResponses = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (SingleQuestionDto singleQuestionDto : questions.getContent()) {
+            SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
+            questionResponses.add(singleQuestionResponse);
+        }
+
+        return new PagedResponse<>(questionResponses, questions.getPagination());
+    }
+
     @GetMapping()
     @PreAuthorize("hasRole('USER')")
     public PagedResponse<SingleQuestionResponse> getQuestions(@CurrentUser UserPrincipal currentUser,

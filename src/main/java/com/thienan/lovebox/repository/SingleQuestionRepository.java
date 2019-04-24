@@ -11,9 +11,15 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Set;
 
 @Repository
 public interface SingleQuestionRepository extends JpaRepository<SingleQuestionEntity, Long> {
+
+    @Query(value = "select q from SingleQuestionEntity q where q.answerer.id in (:userIds) and q.answered = true",
+            countQuery = "select count(q) from SingleQuestionEntity q where q.answerer.id in (:userIds) and q.answered = true")
+    Page<SingleQuestionEntity> findAllAnsweredQuestionsByUserIdsIn(@Param("userIds") Set<Long> userIds,
+                                                        Pageable pageableRequest);
 
     @Query(value = "select q from SingleQuestionEntity q where q.answerer.id = :userId and q.answered = :answered",
             countQuery = "select count(q) from SingleQuestionEntity q where q.answerer.id = :userId and q.answered = :answered")

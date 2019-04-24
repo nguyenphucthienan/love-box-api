@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SingleQuestionServiceImpl implements SingleQuestionService {
@@ -31,6 +33,33 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
     @Autowired
     SingleQuestionRepository singleQuestionRepository;
+
+    @Override
+    public PagedResponse<SingleQuestionDto> getQuestionsInNewsFeed(Long userId, int page, int size) {
+        validatePageNumberAndSize(page, size);
+
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User with ID " + userId + " not found"));
+
+        Set<Long> userIds = userEntity.getFollowing().stream().map(UserEntity::getId).collect(Collectors.toSet());
+
+        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<SingleQuestionEntity> questionsPage = singleQuestionRepository.findAllAnsweredQuestionsByUserIdsIn(userIds, pageRequest);
+
+        List<SingleQuestionEntity> questions = questionsPage.getContent();
+        List<SingleQuestionDto> questionDtos = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (SingleQuestionEntity singleQuestionEntity : questions) {
+            SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
+            questionDtos.add(singleQuestionDto);
+        }
+
+        return new PagedResponse<>(questionDtos, questionsPage.getNumber(), questionsPage.getSize(),
+                questionsPage.getTotalElements(), questionsPage.getTotalPages(),
+                questionsPage.isFirst(), questionsPage.isLast());
+    }
 
     @Override
     public PagedResponse<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, int page, int size) {

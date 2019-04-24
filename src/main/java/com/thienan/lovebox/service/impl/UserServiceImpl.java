@@ -2,6 +2,7 @@ package com.thienan.lovebox.service.impl;
 
 import com.thienan.lovebox.entity.RoleEntity;
 import com.thienan.lovebox.entity.RoleName;
+import com.thienan.lovebox.entity.SingleQuestionEntity;
 import com.thienan.lovebox.entity.UserEntity;
 import com.thienan.lovebox.exception.service.UserServiceException;
 import com.thienan.lovebox.repository.RoleRepository;
@@ -9,8 +10,13 @@ import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.security.JwtTokenProvider;
 import com.thienan.lovebox.service.UserService;
 import com.thienan.lovebox.shared.dto.UserDto;
+import com.thienan.lovebox.utils.PagedResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,7 +25,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -119,5 +127,25 @@ public class UserServiceImpl implements UserService {
         );
 
         return userEntity.getBffDetail() != null;
+    }
+
+    @Override
+    public PagedResponse<UserDto> findUsers(String username, int page, int size) {
+        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<UserEntity> userPage = userRepository.findAllByUsername(username, pageRequest);
+
+        List<UserEntity> users = userPage.getContent();
+        List<UserDto> userDtos = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (UserEntity userEntity : users) {
+            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+            userDtos.add(userDto);
+        }
+
+        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
+                userPage.getTotalElements(), userPage.getTotalPages(),
+                userPage.isFirst(), userPage.isLast());
     }
 }

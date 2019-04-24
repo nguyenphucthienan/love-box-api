@@ -26,7 +26,7 @@ public class SingleQuestionEntity extends DateAudit {
     @Column(nullable = false, length = 50)
     private String questionText;
 
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String answerText;
 
     private boolean answered;

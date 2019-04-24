@@ -2,17 +2,28 @@ package com.thienan.lovebox.controller;
 
 import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.payload.response.UserAvailabilityResponse;
+import com.thienan.lovebox.payload.response.UserBriefDetailResponse;
 import com.thienan.lovebox.payload.response.UserDetailResponse;
 import com.thienan.lovebox.security.CurrentUser;
 import com.thienan.lovebox.security.UserPrincipal;
 import com.thienan.lovebox.service.UserService;
 import com.thienan.lovebox.shared.dto.UserDto;
+import com.thienan.lovebox.utils.AppConstants;
+import com.thienan.lovebox.utils.PagedResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
+
+@Validated
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -54,5 +65,23 @@ public class UserController {
 
         return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Follow/unfollow user successfully"));
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('USER')")
+    public PagedResponse<UserBriefDetailResponse> searchUsers(@RequestParam(value = "username") @Size(min = 3, max = 20) String username,
+                                                              @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
+                                                              @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        PagedResponse<UserDto> users = userService.findUsers(username, page, size);
+        List<UserBriefDetailResponse> userResponses = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (UserDto userDto : users.getContent()) {
+            UserBriefDetailResponse userBriefDetailResponse = modelMapper.map(userDto, UserBriefDetailResponse.class);
+            userResponses.add(userBriefDetailResponse);
+        }
+
+        return new PagedResponse<>(userResponses, users.getPagination());
     }
 }
