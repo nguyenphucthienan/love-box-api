@@ -29,4 +29,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query(value = "select u from UserEntity u where u.username like %:username%",
             countQuery = "select count(u) from UserEntity u where u.username like %:username%")
     Page<UserEntity> findAllByUsername(@Param("username") String username, Pageable pageableRequest);
+
+    @Query(value = "select u from UserEntity u left join u.followers f where f.id = :id",
+            countQuery = "select count(u) from UserEntity u left join u.followers f where f.id = :id")
+    Page<UserEntity> findAllFollowingById(@Param("id") Long id, Pageable pageableRequest);
+
+    @Query(value = "select u from UserEntity u left join u.following f where f.id = :id",
+            countQuery = "select count(u) from UserEntity u left join u.following f where f.id = :id")
+    Page<UserEntity> findAllFollowerById(@Param("id") Long id, Pageable pageableRequest);
 }

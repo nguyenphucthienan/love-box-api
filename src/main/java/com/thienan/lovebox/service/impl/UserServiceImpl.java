@@ -2,7 +2,6 @@ package com.thienan.lovebox.service.impl;
 
 import com.thienan.lovebox.entity.RoleEntity;
 import com.thienan.lovebox.entity.RoleName;
-import com.thienan.lovebox.entity.SingleQuestionEntity;
 import com.thienan.lovebox.entity.UserEntity;
 import com.thienan.lovebox.exception.service.UserServiceException;
 import com.thienan.lovebox.repository.RoleRepository;
@@ -133,6 +132,46 @@ public class UserServiceImpl implements UserService {
     public PagedResponse<UserDto> findUsers(String username, int page, int size) {
         Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
         Page<UserEntity> userPage = userRepository.findAllByUsername(username, pageRequest);
+
+        List<UserEntity> users = userPage.getContent();
+        List<UserDto> userDtos = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (UserEntity userEntity : users) {
+            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+            userDtos.add(userDto);
+        }
+
+        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
+                userPage.getTotalElements(), userPage.getTotalPages(),
+                userPage.isFirst(), userPage.isLast());
+    }
+
+    @Override
+    public PagedResponse<UserDto> getFollowing(Long id, int page, int size) {
+        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<UserEntity> userPage = userRepository.findAllFollowingById(id, pageRequest);
+
+        List<UserEntity> users = userPage.getContent();
+        List<UserDto> userDtos = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (UserEntity userEntity : users) {
+            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+            userDtos.add(userDto);
+        }
+
+        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
+                userPage.getTotalElements(), userPage.getTotalPages(),
+                userPage.isFirst(), userPage.isLast());
+    }
+
+    @Override
+    public PagedResponse<UserDto> getFollowers(Long id, int page, int size) {
+        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Page<UserEntity> userPage = userRepository.findAllFollowerById(id, pageRequest);
 
         List<UserEntity> users = userPage.getContent();
         List<UserDto> userDtos = new ArrayList<>();

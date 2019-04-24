@@ -1,7 +1,5 @@
 package com.thienan.lovebox.payload.response;
 
-import java.util.Set;
-
 public class UserDetailResponse {
 
     private Long id;
@@ -9,8 +7,8 @@ public class UserDetailResponse {
     private String email;
     private String firstName;
     private String lastName;
-    private Set<UserBriefDetailResponse> following;
-    private Set<UserBriefDetailResponse> followers;
+    private int followingCount;
+    private int followersCount;
     private BffDetailResponse bffDetail;
 
     public Long getId() {
@@ -53,20 +51,20 @@ public class UserDetailResponse {
         this.lastName = lastName;
     }
 
-    public Set<UserBriefDetailResponse> getFollowing() {
-        return following;
+    public int getFollowingCount() {
+        return followingCount;
     }
 
-    public void setFollowing(Set<UserBriefDetailResponse> following) {
-        this.following = following;
+    public void setFollowingCount(int followingCount) {
+        this.followingCount = followingCount;
     }
 
-    public Set<UserBriefDetailResponse> getFollowers() {
-        return followers;
+    public int getFollowersCount() {
+        return followersCount;
     }
 
-    public void setFollowers(Set<UserBriefDetailResponse> followers) {
-        this.followers = followers;
+    public void setFollowersCount(int followersCount) {
+        this.followersCount = followersCount;
     }
 
     public BffDetailResponse getBffDetail() {
