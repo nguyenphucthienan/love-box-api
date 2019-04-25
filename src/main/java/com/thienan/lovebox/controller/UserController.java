@@ -32,7 +32,8 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{id}")
-    public UserDetailResponse getUser(@PathVariable("id") Long id) {
+    public UserDetailResponse getUser(@CurrentUser UserPrincipal currentUser,
+                                      @PathVariable("id") Long id) {
         UserDto userDto = userService.getUserById(id);
 
         ModelMapper modelMapper = new ModelMapper();
@@ -43,7 +44,18 @@ public class UserController {
                 .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowing, UserDetailResponse::setFollowingCount))
                 .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowers, UserDetailResponse::setFollowersCount));
 
+        if (currentUser == null ) {
+            modelMapper.typeMap(UserDto.class, UserDetailResponse.class)
+                    .addMappings(mapper -> mapper.skip(UserDetailResponse::setFollowed));
+        }
+
         UserDetailResponse userDetailResponse = modelMapper.map(userDto, UserDetailResponse.class);
+
+        if (currentUser != null) {
+            boolean isFollowed = userService.checkUserHasFollow(currentUser.getId(), id);
+            userDetailResponse.setFollowed(isFollowed);
+        }
+
         return userDetailResponse;
     }
 
@@ -66,16 +78,7 @@ public class UserController {
                                                                @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                                @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
         PagedResponse<UserDto> users = userService.getFollowing(id, page, size);
-        List<UserBriefDetailResponse> userResponses = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (UserDto userDto : users.getContent()) {
-            UserBriefDetailResponse userBriefDetailResponse = modelMapper.map(userDto, UserBriefDetailResponse.class);
-            userResponses.add(userBriefDetailResponse);
-        }
-
-        return new PagedResponse<>(userResponses, users.getPagination());
+        return this.mapToUserBriefDetailResponsePage(users);
     }
 
     @GetMapping("/{id}/followers")
@@ -85,23 +88,13 @@ public class UserController {
                                                                @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                                @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
         PagedResponse<UserDto> users = userService.getFollowers(id, page, size);
-        List<UserBriefDetailResponse> userResponses = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (UserDto userDto : users.getContent()) {
-            UserBriefDetailResponse userBriefDetailResponse = modelMapper.map(userDto, UserBriefDetailResponse.class);
-            userResponses.add(userBriefDetailResponse);
-        }
-
-        return new PagedResponse<>(userResponses, users.getPagination());
+        return this.mapToUserBriefDetailResponsePage(users);
     }
 
     @PostMapping("{id}/follow")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> followUser(@CurrentUser UserPrincipal currentUser,
                                         @PathVariable("id") Long idToFollow) {
-
         userService.followOrUnfollowUser(currentUser.getId(), idToFollow);
 
         return ResponseEntity.ok()
@@ -114,15 +107,19 @@ public class UserController {
                                                               @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                               @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
         PagedResponse<UserDto> users = userService.findUsers(username, page, size);
+        return this.mapToUserBriefDetailResponsePage(users);
+    }
+
+    private PagedResponse<UserBriefDetailResponse> mapToUserBriefDetailResponsePage(PagedResponse<UserDto> userDtos) {
         List<UserBriefDetailResponse> userResponses = new ArrayList<>();
 
         ModelMapper modelMapper = new ModelMapper();
 
-        for (UserDto userDto : users.getContent()) {
+        for (UserDto userDto : userDtos.getContent()) {
             UserBriefDetailResponse userBriefDetailResponse = modelMapper.map(userDto, UserBriefDetailResponse.class);
             userResponses.add(userBriefDetailResponse);
         }
 
-        return new PagedResponse<>(userResponses, users.getPagination());
+        return new PagedResponse<>(userResponses, userDtos.getPagination());
     }
 }

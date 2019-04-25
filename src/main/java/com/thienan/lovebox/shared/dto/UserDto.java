@@ -10,6 +10,8 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String password;
+    private String photoUrl;
+    private String moodMessage;
     private Set<RoleDto> roles;
     private Set<UserDto> following;
     private Set<UserDto> followers;
@@ -61,6 +63,22 @@ public class UserDto {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public String getMoodMessage() {
+        return moodMessage;
+    }
+
+    public void setMoodMessage(String moodMessage) {
+        this.moodMessage = moodMessage;
     }
 
     public Set<RoleDto> getRoles() {

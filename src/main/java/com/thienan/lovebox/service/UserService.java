@@ -19,6 +19,8 @@ public interface UserService {
 
     Boolean checkUserHasBff(Long id);
 
+    Boolean checkUserHasFollow(Long id, Long followedUserId);
+
     PagedResponse<UserDto> findUsers(String username, int page, int size);
 
     PagedResponse<UserDto> getFollowing(Long id, int page, int size);

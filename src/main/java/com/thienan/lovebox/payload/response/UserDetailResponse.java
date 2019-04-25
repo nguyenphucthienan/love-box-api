@@ -7,9 +7,12 @@ public class UserDetailResponse {
     private String email;
     private String firstName;
     private String lastName;
+    private String photoUrl;
+    private String moodMessage;
     private int followingCount;
     private int followersCount;
     private BffDetailResponse bffDetail;
+    private boolean followed;
 
     public Long getId() {
         return id;
@@ -51,6 +54,22 @@ public class UserDetailResponse {
         this.lastName = lastName;
     }
 
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
+
+    public String getMoodMessage() {
+        return moodMessage;
+    }
+
+    public void setMoodMessage(String moodMessage) {
+        this.moodMessage = moodMessage;
+    }
+
     public int getFollowingCount() {
         return followingCount;
     }
@@ -73,5 +92,13 @@ public class UserDetailResponse {
 
     public void setBffDetail(BffDetailResponse bffDetail) {
         this.bffDetail = bffDetail;
+    }
+
+    public boolean isFollowed() {
+        return followed;
+    }
+
+    public void setFollowed(boolean followed) {
+        this.followed = followed;
     }
 }
