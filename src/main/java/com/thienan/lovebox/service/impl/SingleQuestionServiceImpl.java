@@ -44,21 +44,9 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         Set<Long> userIds = userEntity.getFollowing().stream().map(UserEntity::getId).collect(Collectors.toSet());
 
         Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<SingleQuestionEntity> questionsPage = singleQuestionRepository.findAllAnsweredQuestionsByUserIdsIn(userIds, pageRequest);
+        Page<SingleQuestionEntity> questionPage = singleQuestionRepository.findAllAnsweredQuestionsByUserIdsIn(userIds, pageRequest);
 
-        List<SingleQuestionEntity> questions = questionsPage.getContent();
-        List<SingleQuestionDto> questionDtos = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (SingleQuestionEntity singleQuestionEntity : questions) {
-            SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
-            questionDtos.add(singleQuestionDto);
-        }
-
-        return new PagedResponse<>(questionDtos, questionsPage.getNumber(), questionsPage.getSize(),
-                questionsPage.getTotalElements(), questionsPage.getTotalPages(),
-                questionsPage.isFirst(), questionsPage.isLast());
+        return this.mapToSingleQuestionDtoPage(questionPage);
     }
 
     @Override
@@ -66,21 +54,9 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         validatePageNumberAndSize(page, size);
 
         Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<SingleQuestionEntity> questionsPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageRequest);
+        Page<SingleQuestionEntity> questionPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageRequest);
 
-        List<SingleQuestionEntity> questions = questionsPage.getContent();
-        List<SingleQuestionDto> questionDtos = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (SingleQuestionEntity singleQuestionEntity : questions) {
-            SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
-            questionDtos.add(singleQuestionDto);
-        }
-
-        return new PagedResponse<>(questionDtos, questionsPage.getNumber(), questionsPage.getSize(),
-                questionsPage.getTotalElements(), questionsPage.getTotalPages(),
-                questionsPage.isFirst(), questionsPage.isLast());
+        return this.mapToSingleQuestionDtoPage(questionPage);
     }
 
     @Override
@@ -188,5 +164,21 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         if (size > AppConstants.MAX_PAGE_SIZE) {
             throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
         }
+    }
+
+    private PagedResponse<SingleQuestionDto> mapToSingleQuestionDtoPage(Page<SingleQuestionEntity> questionPage) {
+        List<SingleQuestionEntity> questions = questionPage.getContent();
+        List<SingleQuestionDto> questionDtos = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (SingleQuestionEntity singleQuestionEntity : questions) {
+            SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
+            questionDtos.add(singleQuestionDto);
+        }
+
+        return new PagedResponse<>(questionDtos, questionPage.getNumber(), questionPage.getSize(),
+                questionPage.getTotalElements(), questionPage.getTotalPages(),
+                questionPage.isFirst(), questionPage.isLast());
     }
 }

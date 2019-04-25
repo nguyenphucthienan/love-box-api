@@ -150,19 +150,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
         Page<UserEntity> userPage = userRepository.findAllByUsername(username, pageRequest);
 
-        List<UserEntity> users = userPage.getContent();
-        List<UserDto> userDtos = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (UserEntity userEntity : users) {
-            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
-            userDtos.add(userDto);
-        }
-
-        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
-                userPage.getTotalElements(), userPage.getTotalPages(),
-                userPage.isFirst(), userPage.isLast());
+        return this.mapToUserDtoPage(userPage);
     }
 
     @Override
@@ -172,19 +160,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
         Page<UserEntity> userPage = userRepository.findAllFollowingById(id, pageRequest);
 
-        List<UserEntity> users = userPage.getContent();
-        List<UserDto> userDtos = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (UserEntity userEntity : users) {
-            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
-            userDtos.add(userDto);
-        }
-
-        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
-                userPage.getTotalElements(), userPage.getTotalPages(),
-                userPage.isFirst(), userPage.isLast());
+        return this.mapToUserDtoPage(userPage);
     }
 
     @Override
@@ -194,19 +170,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
         Page<UserEntity> userPage = userRepository.findAllFollowerById(id, pageRequest);
 
-        List<UserEntity> users = userPage.getContent();
-        List<UserDto> userDtos = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (UserEntity userEntity : users) {
-            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
-            userDtos.add(userDto);
-        }
-
-        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
-                userPage.getTotalElements(), userPage.getTotalPages(),
-                userPage.isFirst(), userPage.isLast());
+        return this.mapToUserDtoPage(userPage);
     }
 
     private void validatePageNumberAndSize(int page, int size) {
@@ -217,5 +181,21 @@ public class UserServiceImpl implements UserService {
         if (size > AppConstants.MAX_PAGE_SIZE) {
             throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
         }
+    }
+
+    private PagedResponse<UserDto> mapToUserDtoPage(Page<UserEntity> userPage) {
+        List<UserEntity> users = userPage.getContent();
+        List<UserDto> userDtos = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (UserEntity userEntity : users) {
+            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+            userDtos.add(userDto);
+        }
+
+        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
+                userPage.getTotalElements(), userPage.getTotalPages(),
+                userPage.isFirst(), userPage.isLast());
     }
 }
