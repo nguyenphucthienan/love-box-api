@@ -41,16 +41,7 @@ public class SingleQuestionController {
                                                                         @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                                         @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
         PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsInNewsFeed(userId, page, size);
-        List<SingleQuestionResponse> questionResponses = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (SingleQuestionDto singleQuestionDto : questions.getContent()) {
-            SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
-            questionResponses.add(singleQuestionResponse);
-        }
-
-        return new PagedResponse<>(questionResponses, questions.getPagination());
+        return this.mapToSingleQuestionResponsePage(questions);
     }
 
     @GetMapping()
@@ -60,21 +51,12 @@ public class SingleQuestionController {
                                                               @RequestParam(value = "answered", defaultValue = "false") boolean answered,
                                                               @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                               @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
-        if (!userId.equals(currentUser.getId())) {
+        if (!userId.equals(currentUser.getId()) && !answered) {
             throw new ForbiddenException("Cannot get questions of this user");
         }
 
         PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsByUserId(userId, answered, page, size);
-        List<SingleQuestionResponse> questionResponses = new ArrayList<>();
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (SingleQuestionDto singleQuestionDto : questions.getContent()) {
-            SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
-            questionResponses.add(singleQuestionResponse);
-        }
-
-        return new PagedResponse<>(questionResponses, questions.getPagination());
+        return this.mapToSingleQuestionResponsePage(questions);
     }
 
     @PostMapping
@@ -208,5 +190,18 @@ public class SingleQuestionController {
 
         return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Delete single question successfully"));
+    }
+
+    private PagedResponse<SingleQuestionResponse> mapToSingleQuestionResponsePage(PagedResponse<SingleQuestionDto> singleQuestionDtos) {
+        List<SingleQuestionResponse> questionResponses = new ArrayList<>();
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (SingleQuestionDto singleQuestionDto : singleQuestionDtos.getContent()) {
+            SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
+            questionResponses.add(singleQuestionResponse);
+        }
+
+        return new PagedResponse<>(questionResponses, singleQuestionDtos.getPagination());
     }
 }

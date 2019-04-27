@@ -23,10 +23,10 @@ public class SingleQuestionEntity extends DateAudit {
     @JoinColumn(name = "answerer_id")
     private UserEntity answerer;
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 200)
     private String questionText;
 
-    @Column(length = 50)
+    @Column(length = 2000)
     private String answerText;
 
     private boolean answered;
