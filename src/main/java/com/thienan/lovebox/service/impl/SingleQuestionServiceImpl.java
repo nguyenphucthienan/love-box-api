@@ -5,6 +5,7 @@ import com.thienan.lovebox.entity.UserEntity;
 import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
 import com.thienan.lovebox.repository.UserRepository;
+import com.thienan.lovebox.shared.dto.UserDto;
 import com.thienan.lovebox.utils.AppConstants;
 import com.thienan.lovebox.utils.PagedResponse;
 import com.thienan.lovebox.repository.SingleQuestionRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,7 +55,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
     public PagedResponse<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, int page, int size) {
         validatePageNumberAndSize(page, size);
 
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
+        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.ASC, "createdAt");
         Page<SingleQuestionEntity> questionPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageRequest);
 
         return this.mapToSingleQuestionDtoPage(questionPage);
@@ -115,10 +117,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
-        ModelMapper modelMapper = new ModelMapper();
-        SingleQuestionDto returnQuestion = modelMapper.map(answeredSingleQuestionEntity, SingleQuestionDto.class);
-
-        return returnQuestion;
+        return mapSingleQuestionDto(answeredSingleQuestionEntity);
     }
 
     @Override
@@ -138,10 +137,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
         SingleQuestionEntity lovedSingleQuestionEntity = singleQuestionRepository.save(singleQuestionEntity);
 
-        ModelMapper modelMapper = new ModelMapper();
-        SingleQuestionDto returnQuestion = modelMapper.map(lovedSingleQuestionEntity, SingleQuestionDto.class);
-
-        return returnQuestion;
+        return mapSingleQuestionDto(lovedSingleQuestionEntity);
     }
 
     @Override
@@ -170,15 +166,28 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         List<SingleQuestionEntity> questions = questionPage.getContent();
         List<SingleQuestionDto> questionDtos = new ArrayList<>();
 
-        ModelMapper modelMapper = new ModelMapper();
-
         for (SingleQuestionEntity singleQuestionEntity : questions) {
-            SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
+            SingleQuestionDto singleQuestionDto = this.mapSingleQuestionDto(singleQuestionEntity);
             questionDtos.add(singleQuestionDto);
         }
 
         return new PagedResponse<>(questionDtos, questionPage.getNumber(), questionPage.getSize(),
                 questionPage.getTotalElements(), questionPage.getTotalPages(),
                 questionPage.isFirst(), questionPage.isLast());
+    }
+
+    private SingleQuestionDto mapSingleQuestionDto(SingleQuestionEntity singleQuestionEntity) {
+        ModelMapper modelMapper = new ModelMapper();
+        Set<UserDto> lovedUserDtos = new HashSet<>();
+
+        for (UserEntity userEntity : singleQuestionEntity.getLoves()) {
+            UserDto userDto = modelMapper.map(userEntity, UserDto.class);
+            lovedUserDtos.add(userDto);
+        }
+
+        SingleQuestionDto questionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
+        questionDto.setLoves(lovedUserDtos);
+
+        return questionDto;
     }
 }
