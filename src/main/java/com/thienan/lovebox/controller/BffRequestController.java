@@ -11,11 +11,16 @@ import com.thienan.lovebox.service.BffRequestService;
 import com.thienan.lovebox.service.UserService;
 import com.thienan.lovebox.shared.dto.BffRequestDto;
 import com.thienan.lovebox.shared.dto.UserDto;
+import com.thienan.lovebox.utils.AppConstants;
+import com.thienan.lovebox.utils.PagedResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users/{userId}/bff-requests")
@@ -27,6 +32,36 @@ public class BffRequestController {
     @Autowired
     BffRequestService bffRequestService;
 
+    @GetMapping()
+    @PreAuthorize("hasRole('USER')")
+    public PagedResponse<BffRequestResponse> getBffRequests(@CurrentUser UserPrincipal currentUser,
+                                                            @PathVariable("userId") Long userId,
+                                                            @RequestParam(value = "type") String type,
+                                                            @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
+                                                            @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        if (!userId.equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot get this BFF requests of this user");
+        }
+
+        PagedResponse<BffRequestDto> bffRequestDtos;
+        if (type.equals("sent")) {
+            bffRequestDtos = bffRequestService.getSentBffRequestByUserId(userId, page, size);
+        } else if (type.equals("received")) {
+            bffRequestDtos = bffRequestService.getReceivedBffRequestByUserId(userId, page, size);
+        } else {
+            throw new BadRequestException("Missing BFF request type");
+        }
+
+        List<BffRequestResponse> bffRequestResponses = new ArrayList<>();
+        ModelMapper modelMapper = new ModelMapper();
+
+        for (BffRequestDto bffRequestDto : bffRequestDtos.getContent()) {
+            BffRequestResponse bffRequestResponse = modelMapper.map(bffRequestDto, BffRequestResponse.class);
+            bffRequestResponses.add(bffRequestResponse);
+        }
+
+        return new PagedResponse<>(bffRequestResponses, bffRequestDtos.getPagination());
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
@@ -45,6 +80,16 @@ public class BffRequestController {
             throw new ForbiddenException("Cannot get this BFF request");
         }
 
+        ModelMapper modelMapper = new ModelMapper();
+
+        BffRequestResponse bffRequestResponse = modelMapper.map(bffRequestDto, BffRequestResponse.class);
+        return bffRequestResponse;
+    }
+
+    @GetMapping("/exist")
+    public BffRequestResponse checkBffRequestExists(@RequestParam(value = "fromUserId") Long fromUserId,
+                                                          @RequestParam(value = "toUserId") Long toUserId) {
+        BffRequestDto bffRequestDto = bffRequestService.getBffRequestByFromUserIdAndToUserId(fromUserId, toUserId);
         ModelMapper modelMapper = new ModelMapper();
 
         BffRequestResponse bffRequestResponse = modelMapper.map(bffRequestDto, BffRequestResponse.class);
