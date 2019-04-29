@@ -7,6 +7,7 @@ public class UserBriefDetailResponse {
     private String email;
     private String firstName;
     private String lastName;
+    private String photoUrl;
 
     public Long getId() {
         return id;
@@ -46,5 +47,13 @@ public class UserBriefDetailResponse {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
+
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 }

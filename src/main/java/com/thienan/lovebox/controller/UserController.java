@@ -1,5 +1,6 @@
 package com.thienan.lovebox.controller;
 
+import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.payload.response.UserAvailabilityResponse;
 import com.thienan.lovebox.payload.response.UserBriefDetailResponse;
@@ -44,7 +45,7 @@ public class UserController {
                 .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowing, UserDetailResponse::setFollowingCount))
                 .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowers, UserDetailResponse::setFollowersCount));
 
-        if (currentUser == null ) {
+        if (currentUser == null) {
             modelMapper.typeMap(UserDto.class, UserDetailResponse.class)
                     .addMappings(mapper -> mapper.skip(UserDetailResponse::setFollowed));
         }
@@ -77,6 +78,7 @@ public class UserController {
                                                                @PathVariable("id") Long id,
                                                                @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                                @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        this.validatePageNumberAndSize(page, size);
         PagedResponse<UserDto> users = userService.getFollowing(id, page, size);
         return this.mapToUserBriefDetailResponsePage(users);
     }
@@ -87,6 +89,7 @@ public class UserController {
                                                                @PathVariable("id") Long id,
                                                                @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                                @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        this.validatePageNumberAndSize(page, size);
         PagedResponse<UserDto> users = userService.getFollowers(id, page, size);
         return this.mapToUserBriefDetailResponsePage(users);
     }
@@ -96,9 +99,7 @@ public class UserController {
     public ResponseEntity<?> followUser(@CurrentUser UserPrincipal currentUser,
                                         @PathVariable("id") Long idToFollow) {
         userService.followOrUnfollowUser(currentUser.getId(), idToFollow);
-
-        return ResponseEntity.ok()
-                .body(new ApiResponse(true, "Follow/unfollow user successfully"));
+        return ResponseEntity.ok().body(new ApiResponse(true, "Follow/unfollow user successfully"));
     }
 
     @GetMapping("/search")
@@ -106,8 +107,19 @@ public class UserController {
     public PagedResponse<UserBriefDetailResponse> searchUsers(@RequestParam(value = "username") @Size(min = 3, max = 20) String username,
                                                               @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                               @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        this.validatePageNumberAndSize(page, size);
         PagedResponse<UserDto> users = userService.findUsers(username, page, size);
         return this.mapToUserBriefDetailResponsePage(users);
+    }
+
+    private void validatePageNumberAndSize(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page number cannot be less than zero.");
+        }
+
+        if (size > AppConstants.MAX_PAGE_SIZE) {
+            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+        }
     }
 
     private PagedResponse<UserBriefDetailResponse> mapToUserBriefDetailResponsePage(PagedResponse<UserDto> userDtos) {

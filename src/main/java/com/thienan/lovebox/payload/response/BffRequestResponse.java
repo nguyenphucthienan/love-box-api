@@ -1,8 +1,11 @@
 package com.thienan.lovebox.payload.response;
 
+import java.time.Instant;
+
 public class BffRequestResponse {
 
     private Long id;
+    private Instant createdAt;
     private UserBriefDetailResponse fromUser;
     private UserBriefDetailResponse toUser;
     private String text;
@@ -13,6 +16,14 @@ public class BffRequestResponse {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public UserBriefDetailResponse getFromUser() {

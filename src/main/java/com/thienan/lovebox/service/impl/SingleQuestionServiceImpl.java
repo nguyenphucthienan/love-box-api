@@ -2,7 +2,6 @@ package com.thienan.lovebox.service.impl;
 
 import com.thienan.lovebox.entity.SingleQuestionEntity;
 import com.thienan.lovebox.entity.UserEntity;
-import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
 import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.shared.dto.UserDto;
@@ -63,13 +62,10 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
     @Override
     public SingleQuestionDto getQuestion(Long id) {
-        ModelMapper modelMapper = new ModelMapper();
-
         SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
-        SingleQuestionDto returnQuestion = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
-        return returnQuestion;
+        return this.mapSingleQuestionDto(singleQuestionEntity);
     }
 
     @Override
@@ -117,7 +113,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
-        return mapSingleQuestionDto(answeredSingleQuestionEntity);
+        return this.mapSingleQuestionDto(answeredSingleQuestionEntity);
     }
 
     @Override
@@ -154,11 +150,11 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
     private void validatePageNumberAndSize(int page, int size) {
         if (page < 0) {
-            throw new BadRequestException("Page number cannot be less than zero.");
+            throw new SingleQuestionServiceException("Page number cannot be less than zero.");
         }
 
         if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+            throw new SingleQuestionServiceException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
         }
     }
 

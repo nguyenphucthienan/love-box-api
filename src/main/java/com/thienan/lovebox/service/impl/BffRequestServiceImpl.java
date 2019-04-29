@@ -3,7 +3,6 @@ package com.thienan.lovebox.service.impl;
 import com.thienan.lovebox.entity.BffDetailEntity;
 import com.thienan.lovebox.entity.BffRequestEntity;
 import com.thienan.lovebox.entity.UserEntity;
-import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
 import com.thienan.lovebox.repository.BffDetailRepository;
 import com.thienan.lovebox.repository.BffRequestRepository;
@@ -145,11 +144,11 @@ public class BffRequestServiceImpl implements BffRequestService {
 
     private void validatePageNumberAndSize(int page, int size) {
         if (page < 0) {
-            throw new BadRequestException("Page number cannot be less than zero.");
+            throw new SingleQuestionServiceException("Page number cannot be less than zero.");
         }
 
         if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+            throw new SingleQuestionServiceException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
         }
     }
 

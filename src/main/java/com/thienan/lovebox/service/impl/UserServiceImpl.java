@@ -3,7 +3,6 @@ package com.thienan.lovebox.service.impl;
 import com.thienan.lovebox.entity.RoleEntity;
 import com.thienan.lovebox.entity.RoleName;
 import com.thienan.lovebox.entity.UserEntity;
-import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.service.UserServiceException;
 import com.thienan.lovebox.repository.RoleRepository;
 import com.thienan.lovebox.repository.UserRepository;
@@ -175,11 +174,11 @@ public class UserServiceImpl implements UserService {
 
     private void validatePageNumberAndSize(int page, int size) {
         if (page < 0) {
-            throw new BadRequestException("Page number cannot be less than zero.");
+            throw new UserServiceException("Page number cannot be less than zero.");
         }
 
         if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+            throw new UserServiceException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
         }
     }
 

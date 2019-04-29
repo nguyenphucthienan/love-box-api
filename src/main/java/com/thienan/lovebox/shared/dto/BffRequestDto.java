@@ -1,11 +1,14 @@
 package com.thienan.lovebox.shared.dto;
 
+import java.time.Instant;
+
 public class BffRequestDto {
 
     private Long id;
     private UserDto fromUser;
     private UserDto toUser;
     private String text;
+    private Instant createdAt;
 
     public Long getId() {
         return id;
@@ -37,5 +40,13 @@ public class BffRequestDto {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

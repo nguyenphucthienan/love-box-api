@@ -40,6 +40,7 @@ public class SingleQuestionController {
                                                                         @PathVariable("userId") Long userId,
                                                                         @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                                         @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        this.validatePageNumberAndSize(page, size);
         PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsInNewsFeed(userId, page, size);
         return this.mapToSingleQuestionResponsePage(questions);
     }
@@ -51,6 +52,8 @@ public class SingleQuestionController {
                                                               @RequestParam(value = "answered", defaultValue = "false") boolean answered,
                                                               @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                               @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        this.validatePageNumberAndSize(page, size);
+
         if (!userId.equals(currentUser.getId()) && !answered) {
             throw new ForbiddenException("Cannot get questions of this user");
         }
@@ -190,6 +193,16 @@ public class SingleQuestionController {
 
         return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Delete single question successfully"));
+    }
+
+    private void validatePageNumberAndSize(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page number cannot be less than zero.");
+        }
+
+        if (size > AppConstants.MAX_PAGE_SIZE) {
+            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+        }
     }
 
     private PagedResponse<SingleQuestionResponse> mapToSingleQuestionResponsePage(PagedResponse<SingleQuestionDto> singleQuestionDtos) {

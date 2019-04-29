@@ -39,6 +39,8 @@ public class BffRequestController {
                                                             @RequestParam(value = "type") String type,
                                                             @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
                                                             @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
+        this.validatePageNumberAndSize(page, size);
+
         if (!userId.equals(currentUser.getId())) {
             throw new ForbiddenException("Cannot get this BFF requests of this user");
         }
@@ -101,6 +103,10 @@ public class BffRequestController {
     public BffRequestResponse sendBffRequest(@CurrentUser UserPrincipal currentUser,
                                              @PathVariable("userId") Long toUserId,
                                              @RequestBody BffRequestRequest bffRequestRequest) {
+        if (userService.checkUserHasBff(currentUser.getId())) {
+            throw new BadRequestException("User with ID " + toUserId + " already has BFF");
+        }
+
         if (userService.checkUserHasBff(toUserId)) {
             throw new BadRequestException("User with ID " + toUserId + " already has BFF");
         }
@@ -168,5 +174,15 @@ public class BffRequestController {
 
         return ResponseEntity.ok()
                 .body(new ApiResponse(true, "Reject BFF request successfully"));
+    }
+
+    private void validatePageNumberAndSize(int page, int size) {
+        if (page < 0) {
+            throw new BadRequestException("Page number cannot be less than zero.");
+        }
+
+        if (size > AppConstants.MAX_PAGE_SIZE) {
+            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
+        }
     }
 }
