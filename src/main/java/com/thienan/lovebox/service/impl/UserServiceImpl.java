@@ -9,15 +9,12 @@ import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.security.JwtTokenProvider;
 import com.thienan.lovebox.service.UserService;
 import com.thienan.lovebox.shared.dto.UserDto;
-import com.thienan.lovebox.utils.AppConstants;
 import com.thienan.lovebox.utils.PagedResponse;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -139,43 +136,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PagedResponse<UserDto> findUsers(String username, int page, int size) {
-        validatePageNumberAndSize(page, size);
-
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<UserEntity> userPage = userRepository.findAllByUsername(username, pageRequest);
-
+    public PagedResponse<UserDto> findUsers(String username, Pageable pageable) {
+        Page<UserEntity> userPage = userRepository.findAllByUsername(username, pageable);
         return mapToUserDtoPage(userPage);
     }
 
     @Override
-    public PagedResponse<UserDto> getFollowing(Long id, int page, int size) {
-        validatePageNumberAndSize(page, size);
-
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<UserEntity> userPage = userRepository.findAllFollowingById(id, pageRequest);
-
+    public PagedResponse<UserDto> getFollowing(Long id, Pageable pageable) {
+        Page<UserEntity> userPage = userRepository.findAllFollowingById(id, pageable);
         return mapToUserDtoPage(userPage);
     }
 
     @Override
-    public PagedResponse<UserDto> getFollowers(Long id, int page, int size) {
-        validatePageNumberAndSize(page, size);
-
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<UserEntity> userPage = userRepository.findAllFollowerById(id, pageRequest);
-
+    public PagedResponse<UserDto> getFollowers(Long id, Pageable pageable) {
+        Page<UserEntity> userPage = userRepository.findAllFollowerById(id, pageable);
         return mapToUserDtoPage(userPage);
-    }
-
-    private void validatePageNumberAndSize(int page, int size) {
-        if (page < 0) {
-            throw new UserServiceException("Page number cannot be less than zero.");
-        }
-
-        if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new UserServiceException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
-        }
     }
 
     private UserEntity mapToUserEntity(UserDto userDto) {

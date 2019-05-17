@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,21 +19,19 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByUsernameOrEmail(String username, String email);
 
-    List<UserEntity> findByIdIn(List<Long> userIds);
-
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);
 
     @Query(value = "select u from UserEntity u where u.username like %:username%",
             countQuery = "select count(u) from UserEntity u where u.username like %:username%")
-    Page<UserEntity> findAllByUsername(@Param("username") String username, Pageable pageableRequest);
+    Page<UserEntity> findAllByUsername(@Param("username") String username, Pageable pageable);
 
     @Query(value = "select u from UserEntity u left join u.followers f where f.id = :id",
             countQuery = "select count(u) from UserEntity u left join u.followers f where f.id = :id")
-    Page<UserEntity> findAllFollowingById(@Param("id") Long id, Pageable pageableRequest);
+    Page<UserEntity> findAllFollowingById(@Param("id") Long id, Pageable pageable);
 
     @Query(value = "select u from UserEntity u left join u.following f where f.id = :id",
             countQuery = "select count(u) from UserEntity u left join u.following f where f.id = :id")
-    Page<UserEntity> findAllFollowerById(@Param("id") Long id, Pageable pageableRequest);
+    Page<UserEntity> findAllFollowerById(@Param("id") Long id, Pageable pageable);
 }

@@ -2,6 +2,7 @@ package com.thienan.lovebox.service;
 
 import com.thienan.lovebox.shared.dto.UserDto;
 import com.thienan.lovebox.utils.PagedResponse;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
@@ -21,9 +22,9 @@ public interface UserService {
 
     Boolean checkUserHasFollow(Long id, Long followedUserId);
 
-    PagedResponse<UserDto> findUsers(String username, int page, int size);
+    PagedResponse<UserDto> findUsers(String username, Pageable pageable);
 
-    PagedResponse<UserDto> getFollowing(Long id, int page, int size);
+    PagedResponse<UserDto> getFollowing(Long id, Pageable pageable);
 
-    PagedResponse<UserDto> getFollowers(Long id, int page, int size);
+    PagedResponse<UserDto> getFollowers(Long id, Pageable pageable);
 }
