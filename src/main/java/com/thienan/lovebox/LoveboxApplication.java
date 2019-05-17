@@ -1,5 +1,6 @@
 package com.thienan.lovebox;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -22,12 +23,19 @@ public class LoveboxApplication {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     }
 
-    public static void main(String[] args) {
-        SpringApplication.run(LoveboxApplication.class, args);
-    }
-
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setAmbiguityIgnored(true);
+        return modelMapper;
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(LoveboxApplication.class, args);
     }
 }

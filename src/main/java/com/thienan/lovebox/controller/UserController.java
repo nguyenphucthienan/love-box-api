@@ -4,7 +4,7 @@ import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.payload.response.UserAvailabilityResponse;
 import com.thienan.lovebox.payload.response.UserBriefDetailResponse;
-import com.thienan.lovebox.payload.response.UserDetailResponse;
+import com.thienan.lovebox.payload.response.UserResponse;
 import com.thienan.lovebox.security.CurrentUser;
 import com.thienan.lovebox.security.UserPrincipal;
 import com.thienan.lovebox.service.UserService;
@@ -33,31 +33,31 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{id}")
-    public UserDetailResponse getUser(@CurrentUser UserPrincipal currentUser,
-                                      @PathVariable("id") Long id) {
+    public UserResponse getUser(@CurrentUser UserPrincipal currentUser,
+                                @PathVariable("id") Long id) {
         UserDto userDto = userService.getUserById(id);
 
         ModelMapper modelMapper = new ModelMapper();
         Converter<Set<UserDto>, Integer> converter = ctx -> ctx.getSource() == null ? null : ctx.getSource().size();
 
-        modelMapper.typeMap(UserDto.class, UserDetailResponse.class)
-                .addMappings(mapper -> mapper.map(UserDto::getBffDetail, UserDetailResponse::setBffDetail))
-                .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowing, UserDetailResponse::setFollowingCount))
-                .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowers, UserDetailResponse::setFollowersCount));
+        modelMapper.typeMap(UserDto.class, UserResponse.class)
+                .addMappings(mapper -> mapper.map(UserDto::getBffDetail, UserResponse::setBffDetail))
+                .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowing, UserResponse::setFollowingCount))
+                .addMappings(mapper -> mapper.using(converter).map(UserDto::getFollowers, UserResponse::setFollowersCount));
 
         if (currentUser == null) {
-            modelMapper.typeMap(UserDto.class, UserDetailResponse.class)
-                    .addMappings(mapper -> mapper.skip(UserDetailResponse::setFollowed));
+            modelMapper.typeMap(UserDto.class, UserResponse.class)
+                    .addMappings(mapper -> mapper.skip(UserResponse::setFollowed));
         }
 
-        UserDetailResponse userDetailResponse = modelMapper.map(userDto, UserDetailResponse.class);
+        UserResponse userResponse = modelMapper.map(userDto, UserResponse.class);
 
         if (currentUser != null) {
             boolean isFollowed = userService.checkUserHasFollow(currentUser.getId(), id);
-            userDetailResponse.setFollowed(isFollowed);
+            userResponse.setFollowed(isFollowed);
         }
 
-        return userDetailResponse;
+        return userResponse;
     }
 
     @GetMapping("/check-username")

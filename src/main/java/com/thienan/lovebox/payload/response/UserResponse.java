@@ -1,6 +1,6 @@
 package com.thienan.lovebox.payload.response;
 
-public class UserDetailResponse {
+public class UserResponse {
 
     private Long id;
     private String username;
