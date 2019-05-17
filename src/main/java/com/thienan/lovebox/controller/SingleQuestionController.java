@@ -13,15 +13,14 @@ import com.thienan.lovebox.service.SingleQuestionService;
 import com.thienan.lovebox.service.UserService;
 import com.thienan.lovebox.shared.dto.SingleQuestionDto;
 import com.thienan.lovebox.shared.dto.UserDto;
-import com.thienan.lovebox.utils.AppConstants;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -34,15 +33,20 @@ public class SingleQuestionController {
     @Autowired
     SingleQuestionService singleQuestionService;
 
+    @Autowired
+    ModelMapper modelMapper;
+
     @GetMapping("/news-feed")
     @PreAuthorize("hasRole('USER')")
     public PagedResponse<SingleQuestionResponse> getQuestionsInNewsFeed(@CurrentUser UserPrincipal currentUser,
                                                                         @PathVariable("userId") Long userId,
-                                                                        @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
-                                                                        @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
-        this.validatePageNumberAndSize(page, size);
-        PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsInNewsFeed(userId, page, size);
-        return this.mapToSingleQuestionResponsePage(questions);
+                                                                        Pageable pageable) {
+        if (!userId.equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot get news feed of this user");
+        }
+
+        PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsInNewsFeed(userId, pageable);
+        return mapToSingleQuestionResponsePage(questions);
     }
 
     @GetMapping()
@@ -50,16 +54,13 @@ public class SingleQuestionController {
     public PagedResponse<SingleQuestionResponse> getQuestions(@CurrentUser UserPrincipal currentUser,
                                                               @PathVariable("userId") Long userId,
                                                               @RequestParam(value = "answered", defaultValue = "false") boolean answered,
-                                                              @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER) int page,
-                                                              @RequestParam(value = "size", defaultValue = AppConstants.DEFAULT_PAGE_SIZE) int size) {
-        this.validatePageNumberAndSize(page, size);
-
+                                                              Pageable pageable) {
         if (!userId.equals(currentUser.getId()) && !answered) {
             throw new ForbiddenException("Cannot get questions of this user");
         }
 
-        PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsByUserId(userId, answered, page, size);
-        return this.mapToSingleQuestionResponsePage(questions);
+        PagedResponse<SingleQuestionDto> questions = singleQuestionService.getQuestionsByUserId(userId, answered, pageable);
+        return mapToSingleQuestionResponsePage(questions);
     }
 
     @PostMapping
@@ -70,16 +71,12 @@ public class SingleQuestionController {
         UserDto questioner = userService.getUserById(currentUser.getId());
         UserDto answerer = userService.getUserById(answererId);
 
-        ModelMapper modelMapper = new ModelMapper();
-
         SingleQuestionDto singleQuestionDto = modelMapper.map(askSingleQuestionRequest, SingleQuestionDto.class);
         singleQuestionDto.setQuestioner(questioner);
         singleQuestionDto.setAnswerer(answerer);
 
         SingleQuestionDto createdQuestion = singleQuestionService.createQuestion(singleQuestionDto);
-        SingleQuestionResponse singleQuestionResponse = modelMapper.map(createdQuestion, SingleQuestionResponse.class);
-
-        return singleQuestionResponse;
+        return mapToSingleQuestionResponse(createdQuestion);
     }
 
     @GetMapping("/{id}")
@@ -97,10 +94,7 @@ public class SingleQuestionController {
             throw new BadRequestException("Question has not been answered");
         }
 
-        ModelMapper modelMapper = new ModelMapper();
-        SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
-
-        return singleQuestionResponse;
+        return mapToSingleQuestionResponse(singleQuestionDto);
     }
 
     @PostMapping("/{id}/answer")
@@ -122,10 +116,7 @@ public class SingleQuestionController {
         SingleQuestionDto answeredSingleQuestionDto = singleQuestionService
                 .answerQuestion(id, answerSingleQuestionRequest.getAnswerText());
 
-        ModelMapper modelMapper = new ModelMapper();
-
-        SingleQuestionResponse singleQuestionResponse = modelMapper.map(answeredSingleQuestionDto, SingleQuestionResponse.class);
-        return singleQuestionResponse;
+        return mapToSingleQuestionResponse(answeredSingleQuestionDto);
     }
 
     @PostMapping("/{id}/unanswer")
@@ -144,11 +135,7 @@ public class SingleQuestionController {
         }
 
         SingleQuestionDto unansweredSingleQuestionDto = singleQuestionService.unanswerQuestion(id);
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        SingleQuestionResponse singleQuestionResponse = modelMapper.map(unansweredSingleQuestionDto, SingleQuestionResponse.class);
-        return singleQuestionResponse;
+        return mapToSingleQuestionResponse(unansweredSingleQuestionDto);
     }
 
     @PostMapping("/{id}/love")
@@ -167,18 +154,14 @@ public class SingleQuestionController {
         }
 
         SingleQuestionDto lovedSingleQuestionDto = singleQuestionService.loveOrUnloveQuestion(id, currentUser.getId());
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        SingleQuestionResponse singleQuestionResponse = modelMapper.map(lovedSingleQuestionDto, SingleQuestionResponse.class);
-        return singleQuestionResponse;
+        return mapToSingleQuestionResponse(lovedSingleQuestionDto);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> deleteSingleQuestion(@CurrentUser UserPrincipal currentUser,
-                                                  @PathVariable("userId") Long answererId,
-                                                  @PathVariable("id") Long id) {
+    public ApiResponse deleteSingleQuestion(@CurrentUser UserPrincipal currentUser,
+                                            @PathVariable("userId") Long answererId,
+                                            @PathVariable("id") Long id) {
         SingleQuestionDto singleQuestionDto = singleQuestionService.getQuestion(id);
 
         if (!singleQuestionDto.getAnswerer().getId().equals(answererId)) {
@@ -190,31 +173,20 @@ public class SingleQuestionController {
         }
 
         singleQuestionService.deleteQuestion(id);
-
-        return ResponseEntity.ok()
-                .body(new ApiResponse(true, "Delete single question successfully"));
+        return new ApiResponse(true, "Delete single question successfully");
     }
 
-    private void validatePageNumberAndSize(int page, int size) {
-        if (page < 0) {
-            throw new BadRequestException("Page number cannot be less than zero.");
-        }
-
-        if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new BadRequestException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
-        }
+    private SingleQuestionResponse mapToSingleQuestionResponse(SingleQuestionDto singleQuestionDto) {
+        return modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
     }
 
     private PagedResponse<SingleQuestionResponse> mapToSingleQuestionResponsePage(PagedResponse<SingleQuestionDto> singleQuestionDtos) {
-        List<SingleQuestionResponse> questionResponses = new ArrayList<>();
+        List<SingleQuestionResponse> singleQuestionResponses = modelMapper.map(
+                singleQuestionDtos.getContent(),
+                new TypeToken<List<SingleQuestionResponse>>() {
+                }.getType()
+        );
 
-        ModelMapper modelMapper = new ModelMapper();
-
-        for (SingleQuestionDto singleQuestionDto : singleQuestionDtos.getContent()) {
-            SingleQuestionResponse singleQuestionResponse = modelMapper.map(singleQuestionDto, SingleQuestionResponse.class);
-            questionResponses.add(singleQuestionResponse);
-        }
-
-        return new PagedResponse<>(questionResponses, singleQuestionDtos.getPagination());
+        return new PagedResponse<>(singleQuestionResponses, singleQuestionDtos.getPagination());
     }
 }

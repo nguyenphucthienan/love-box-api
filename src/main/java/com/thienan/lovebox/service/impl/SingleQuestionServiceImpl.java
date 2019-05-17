@@ -5,7 +5,6 @@ import com.thienan.lovebox.entity.UserEntity;
 import com.thienan.lovebox.exception.service.SingleQuestionServiceException;
 import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.shared.dto.UserDto;
-import com.thienan.lovebox.utils.AppConstants;
 import com.thienan.lovebox.utils.PagedResponse;
 import com.thienan.lovebox.repository.SingleQuestionRepository;
 import com.thienan.lovebox.service.SingleQuestionService;
@@ -13,9 +12,7 @@ import com.thienan.lovebox.shared.dto.SingleQuestionDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -35,29 +32,27 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
     @Autowired
     SingleQuestionRepository singleQuestionRepository;
 
-    @Override
-    public PagedResponse<SingleQuestionDto> getQuestionsInNewsFeed(Long userId, int page, int size) {
-        validatePageNumberAndSize(page, size);
+    @Autowired
+    ModelMapper modelMapper;
 
+    @Override
+    public PagedResponse<SingleQuestionDto> getQuestionsInNewsFeed(Long userId, Pageable pageable) {
         UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User with ID " + userId + " not found"));
+                .orElseThrow(() -> new SingleQuestionServiceException("User with ID " + userId + " not found"));
 
         Set<Long> userIds = userEntity.getFollowing().stream().map(UserEntity::getId).collect(Collectors.toSet());
+        Page<SingleQuestionEntity> singleQuestionEntityPage = singleQuestionRepository.findAllAnsweredQuestionsByUserIdsIn(userIds, pageable);
 
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<SingleQuestionEntity> questionPage = singleQuestionRepository.findAllAnsweredQuestionsByUserIdsIn(userIds, pageRequest);
-
-        return this.mapToSingleQuestionDtoPage(questionPage);
+        return mapToSingleQuestionDtoPage(singleQuestionEntityPage);
     }
 
     @Override
-    public PagedResponse<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, int page, int size) {
-        validatePageNumberAndSize(page, size);
+    public PagedResponse<SingleQuestionDto> getQuestionsByUserId(Long userId, boolean answered, Pageable pageable) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new SingleQuestionServiceException("User with ID " + userId + " not found"));
 
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.ASC, "createdAt");
-        Page<SingleQuestionEntity> questionPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageRequest);
-
-        return this.mapToSingleQuestionDtoPage(questionPage);
+        Page<SingleQuestionEntity> questionPage = singleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageable);
+        return mapToSingleQuestionDtoPage(questionPage);
     }
 
     @Override
@@ -65,18 +60,14 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         SingleQuestionEntity singleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
-        return this.mapSingleQuestionDto(singleQuestionEntity);
+        return mapToSingleQuestionDto(singleQuestionEntity);
     }
 
     @Override
     public SingleQuestionDto createQuestion(SingleQuestionDto singleQuestionDto) {
-        ModelMapper modelMapper = new ModelMapper();
-
-        SingleQuestionEntity singleQuestionEntity = modelMapper.map(singleQuestionDto, SingleQuestionEntity.class);
-        SingleQuestionEntity storedQuestion = singleQuestionRepository.save(singleQuestionEntity);
-
-        SingleQuestionDto returnQuestion = modelMapper.map(storedQuestion, SingleQuestionDto.class);
-        return returnQuestion;
+        SingleQuestionEntity singleQuestionEntity = mapToSingleQuestionEntity(singleQuestionDto);
+        SingleQuestionEntity savedSingleQuestionEntity = singleQuestionRepository.save(singleQuestionEntity);
+        return mapToSingleQuestionDto(savedSingleQuestionEntity);
     }
 
     @Override
@@ -93,10 +84,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
-        ModelMapper modelMapper = new ModelMapper();
-        SingleQuestionDto returnQuestion = modelMapper.map(answeredSingleQuestionEntity, SingleQuestionDto.class);
-
-        return returnQuestion;
+        return mapToSingleQuestionDto(answeredSingleQuestionEntity);
     }
 
     @Override
@@ -110,10 +98,10 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
 
         singleQuestionRepository.unanswerQuestion(id, Instant.now());
 
-        SingleQuestionEntity answeredSingleQuestionEntity = singleQuestionRepository.findById(id)
+        SingleQuestionEntity unansweredSingleQuestionEntity = singleQuestionRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
-        return this.mapSingleQuestionDto(answeredSingleQuestionEntity);
+        return mapToSingleQuestionDto(unansweredSingleQuestionEntity);
     }
 
     @Override
@@ -132,8 +120,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         }
 
         SingleQuestionEntity lovedSingleQuestionEntity = singleQuestionRepository.save(singleQuestionEntity);
-
-        return mapSingleQuestionDto(lovedSingleQuestionEntity);
+        return mapToSingleQuestionDto(lovedSingleQuestionEntity);
     }
 
     @Override
@@ -148,32 +135,11 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
         singleQuestionRepository.delete(singleQuestionEntity);
     }
 
-    private void validatePageNumberAndSize(int page, int size) {
-        if (page < 0) {
-            throw new SingleQuestionServiceException("Page number cannot be less than zero.");
-        }
-
-        if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new SingleQuestionServiceException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
-        }
+    private SingleQuestionEntity mapToSingleQuestionEntity(SingleQuestionDto singleQuestionDto) {
+        return modelMapper.map(singleQuestionDto, SingleQuestionEntity.class);
     }
 
-    private PagedResponse<SingleQuestionDto> mapToSingleQuestionDtoPage(Page<SingleQuestionEntity> questionPage) {
-        List<SingleQuestionEntity> questions = questionPage.getContent();
-        List<SingleQuestionDto> questionDtos = new ArrayList<>();
-
-        for (SingleQuestionEntity singleQuestionEntity : questions) {
-            SingleQuestionDto singleQuestionDto = this.mapSingleQuestionDto(singleQuestionEntity);
-            questionDtos.add(singleQuestionDto);
-        }
-
-        return new PagedResponse<>(questionDtos, questionPage.getNumber(), questionPage.getSize(),
-                questionPage.getTotalElements(), questionPage.getTotalPages(),
-                questionPage.isFirst(), questionPage.isLast());
-    }
-
-    private SingleQuestionDto mapSingleQuestionDto(SingleQuestionEntity singleQuestionEntity) {
-        ModelMapper modelMapper = new ModelMapper();
+    private SingleQuestionDto mapToSingleQuestionDto(SingleQuestionEntity singleQuestionEntity) {
         Set<UserDto> lovedUserDtos = new HashSet<>();
 
         for (UserEntity userEntity : singleQuestionEntity.getLoves()) {
@@ -181,9 +147,28 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
             lovedUserDtos.add(userDto);
         }
 
-        SingleQuestionDto questionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
-        questionDto.setLoves(lovedUserDtos);
+        SingleQuestionDto singleQuestionDto = modelMapper.map(singleQuestionEntity, SingleQuestionDto.class);
+        singleQuestionDto.setLoves(lovedUserDtos);
+        return singleQuestionDto;
+    }
 
-        return questionDto;
+    private List<SingleQuestionDto> mapToListSingleQuestionDto(List<SingleQuestionEntity> singleQuestionEntities) {
+        List<SingleQuestionDto> singleQuestionDtos = new ArrayList<>();
+
+        for (SingleQuestionEntity singleQuestionEntity: singleQuestionEntities) {
+            SingleQuestionDto singleQuestionDto = mapToSingleQuestionDto(singleQuestionEntity);
+            singleQuestionDtos.add(singleQuestionDto);
+        }
+
+        return singleQuestionDtos;
+    }
+
+    private PagedResponse<SingleQuestionDto> mapToSingleQuestionDtoPage(Page<SingleQuestionEntity> singleQuestionEntityPage) {
+        List<SingleQuestionEntity> singleQuestionEntities = singleQuestionEntityPage.getContent();
+        List<SingleQuestionDto> singleQuestionDtos = mapToListSingleQuestionDto(singleQuestionEntities);
+
+        return new PagedResponse<>(singleQuestionDtos, singleQuestionEntityPage.getNumber(), singleQuestionEntityPage.getSize(),
+                singleQuestionEntityPage.getTotalElements(), singleQuestionEntityPage.getTotalPages(),
+                singleQuestionEntityPage.isFirst(), singleQuestionEntityPage.isLast());
     }
 }

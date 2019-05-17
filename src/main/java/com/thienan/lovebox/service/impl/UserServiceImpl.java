@@ -166,12 +166,12 @@ public class UserServiceImpl implements UserService {
         }.getType());
     }
 
-    private PagedResponse<UserDto> mapToUserDtoPage(Page<UserEntity> userPage) {
-        List<UserEntity> userEntities = userPage.getContent();
+    private PagedResponse<UserDto> mapToUserDtoPage(Page<UserEntity> userEntityPage) {
+        List<UserEntity> userEntities = userEntityPage.getContent();
         List<UserDto> userDtos = mapToListUserDto(userEntities);
 
-        return new PagedResponse<>(userDtos, userPage.getNumber(), userPage.getSize(),
-                userPage.getTotalElements(), userPage.getTotalPages(),
-                userPage.isFirst(), userPage.isLast());
+        return new PagedResponse<>(userDtos, userEntityPage.getNumber(), userEntityPage.getSize(),
+                userEntityPage.getTotalElements(), userEntityPage.getTotalPages(),
+                userEntityPage.isFirst(), userEntityPage.isLast());
     }
 }

@@ -19,13 +19,13 @@ public interface SingleQuestionRepository extends JpaRepository<SingleQuestionEn
     @Query(value = "select q from SingleQuestionEntity q where q.answerer.id in (:userIds) and q.answered = true",
             countQuery = "select count(q) from SingleQuestionEntity q where q.answerer.id in (:userIds) and q.answered = true")
     Page<SingleQuestionEntity> findAllAnsweredQuestionsByUserIdsIn(@Param("userIds") Set<Long> userIds,
-                                                                   Pageable pageableRequest);
+                                                                   Pageable pageable);
 
     @Query(value = "select q from SingleQuestionEntity q where q.answerer.id = :userId and q.answered = :answered",
             countQuery = "select count(q) from SingleQuestionEntity q where q.answerer.id = :userId and q.answered = :answered")
     Page<SingleQuestionEntity> findAllQuestionsByUserId(@Param("userId") Long userId,
                                                         @Param("answered") boolean answered,
-                                                        Pageable pageableRequest);
+                                                        Pageable pageable);
 
     @Transactional
     @Modifying(flushAutomatically = true, clearAutomatically = true)

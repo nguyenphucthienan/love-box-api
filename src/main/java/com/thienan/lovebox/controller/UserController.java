@@ -101,13 +101,14 @@ public class UserController {
         return mapToUserBriefDetailResponsePage(users);
     }
 
-    private PagedResponse<UserBriefDetailResponse> mapToUserBriefDetailResponsePage(PagedResponse<UserDto> userDtos) {
-        List<UserBriefDetailResponse> userResponses = modelMapper.map(
-                userDtos.getContent(),
-                new TypeToken<List<UserBriefDetailResponse>>() {
-                }.getType()
-        );
+    private List<UserBriefDetailResponse> mapToUserBriefDetailResponseList(List<UserDto> userDtos) {
+        return modelMapper.map(userDtos, new TypeToken<List<UserBriefDetailResponse>>() {
+        }.getType());
+    }
 
-        return new PagedResponse<>(userResponses, userDtos.getPagination());
+    private PagedResponse<UserBriefDetailResponse> mapToUserBriefDetailResponsePage(PagedResponse<UserDto> userDtoPage) {
+        List<UserDto> userDtos = userDtoPage.getContent();
+        List<UserBriefDetailResponse> userResponses = mapToUserBriefDetailResponseList(userDtos);
+        return new PagedResponse<>(userResponses, userDtoPage.getPagination());
     }
 }

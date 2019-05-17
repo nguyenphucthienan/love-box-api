@@ -1,5 +1,6 @@
 package com.thienan.lovebox.shared.dto;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class UserDto {
@@ -12,9 +13,9 @@ public class UserDto {
     private String password;
     private String photoUrl;
     private String moodMessage;
-    private Set<RoleDto> roles;
-    private Set<UserDto> following;
-    private Set<UserDto> followers;
+    private Set<RoleDto> roles = new HashSet<>();
+    private Set<UserDto> following = new HashSet<>();
+    private Set<UserDto> followers = new HashSet<>();
     private BffDetailDto bffDetail;
 
     public Long getId() {

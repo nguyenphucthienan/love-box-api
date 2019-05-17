@@ -1,6 +1,7 @@
 package com.thienan.lovebox.shared.dto;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
 public class SingleQuestionDto {
@@ -13,7 +14,7 @@ public class SingleQuestionDto {
     private String answerText;
     private boolean answered;
     private Instant answeredAt;
-    private Set<UserDto> loves;
+    private Set<UserDto> loves = new HashSet<>();
 
     public Long getId() {
         return id;

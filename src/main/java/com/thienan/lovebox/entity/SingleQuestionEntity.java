@@ -37,7 +37,7 @@ public class SingleQuestionEntity extends DateAudit {
     @JoinTable(name = "single_question_loves",
             joinColumns = @JoinColumn(name = "single_question_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private Set<UserEntity> loves;
+    private Set<UserEntity> loves = new HashSet<>();
 
     public SingleQuestionEntity() {
     }
