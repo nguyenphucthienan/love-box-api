@@ -9,17 +9,14 @@ import com.thienan.lovebox.repository.BffRequestRepository;
 import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.service.BffRequestService;
 import com.thienan.lovebox.shared.dto.BffRequestDto;
-import com.thienan.lovebox.utils.AppConstants;
 import com.thienan.lovebox.utils.PagedResponse;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,35 +31,27 @@ public class BffRequestServiceImpl implements BffRequestService {
     @Autowired
     BffDetailRepository bffDetailRepository;
 
+    @Autowired
+    ModelMapper modelMapper;
+
     @Override
-    public PagedResponse<BffRequestDto> getSentBffRequestByUserId(Long userId, int page, int size) {
-        validatePageNumberAndSize(page, size);
-
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<BffRequestEntity> bffRequestPage = bffRequestRepository.findAllSentBffRequestsByUserId(userId, pageRequest);
-
-        return this.mapToBffRequestDtoPage(bffRequestPage);
+    public PagedResponse<BffRequestDto> getSentBffRequestByUserId(Long userId, Pageable pageable) {
+        Page<BffRequestEntity> bffRequestPage = bffRequestRepository.findAllSentBffRequestsByUserId(userId, pageable);
+        return mapToBffRequestDtoPage(bffRequestPage);
     }
 
     @Override
-    public PagedResponse<BffRequestDto> getReceivedBffRequestByUserId(Long userId, int page, int size) {
-        validatePageNumberAndSize(page, size);
-
-        Pageable pageRequest = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<BffRequestEntity> bffRequestPage = bffRequestRepository.findAllReceivedBffRequestsByUserId(userId, pageRequest);
-
-        return this.mapToBffRequestDtoPage(bffRequestPage);
+    public PagedResponse<BffRequestDto> getReceivedBffRequestByUserId(Long userId, Pageable pageable) {
+        Page<BffRequestEntity> bffRequestPage = bffRequestRepository.findAllReceivedBffRequestsByUserId(userId, pageable);
+        return mapToBffRequestDtoPage(bffRequestPage);
     }
 
     @Override
     public BffRequestDto getBffRequest(Long id) {
-        ModelMapper modelMapper = new ModelMapper();
-
         BffRequestEntity bffRequestEntity = bffRequestRepository.findById(id)
                 .orElseThrow(() -> new SingleQuestionServiceException("BFF Request with ID " + id + " not found"));
 
-        BffRequestDto returnBffRequest = modelMapper.map(bffRequestEntity, BffRequestDto.class);
-        return returnBffRequest;
+        return mapToBffRequestDto(bffRequestEntity);
     }
 
     @Override
@@ -75,24 +64,17 @@ public class BffRequestServiceImpl implements BffRequestService {
 
     @Override
     public BffRequestDto getBffRequestByFromUserIdAndToUserId(Long fromUserId, Long toUserId) {
-        ModelMapper modelMapper = new ModelMapper();
-
         BffRequestEntity bffRequestEntity = bffRequestRepository.findByFromUserIdAndToUserId(fromUserId, toUserId)
                 .orElse(null);
 
-        BffRequestDto returnBffRequest = modelMapper.map(bffRequestEntity, BffRequestDto.class);
-        return returnBffRequest;
+        return mapToBffRequestDto(bffRequestEntity);
     }
 
     @Override
     public BffRequestDto createBffRequest(BffRequestDto bffRequestDto) {
-        ModelMapper modelMapper = new ModelMapper();
-
-        BffRequestEntity bffRequestEntity = modelMapper.map(bffRequestDto, BffRequestEntity.class);
-        BffRequestEntity storedBffRequest = bffRequestRepository.save(bffRequestEntity);
-
-        BffRequestDto returnBffRequest = modelMapper.map(storedBffRequest, BffRequestDto.class);
-        return returnBffRequest;
+        BffRequestEntity bffRequestEntity = mapToBffRequestEntity(bffRequestDto);
+        BffRequestEntity savedBffRequest = bffRequestRepository.save(bffRequestEntity);
+        return mapToBffRequestDto(savedBffRequest);
     }
 
     @Override
@@ -142,29 +124,25 @@ public class BffRequestServiceImpl implements BffRequestService {
         bffRequestRepository.deleteAllByUserId(userId);
     }
 
-    private void validatePageNumberAndSize(int page, int size) {
-        if (page < 0) {
-            throw new SingleQuestionServiceException("Page number cannot be less than zero.");
-        }
-
-        if (size > AppConstants.MAX_PAGE_SIZE) {
-            throw new SingleQuestionServiceException("Page size must not be greater than " + AppConstants.MAX_PAGE_SIZE);
-        }
+    private BffRequestEntity mapToBffRequestEntity(BffRequestDto bffRequestDto) {
+        return modelMapper.map(bffRequestDto, BffRequestEntity.class);
     }
 
-    private PagedResponse<BffRequestDto> mapToBffRequestDtoPage(Page<BffRequestEntity> bffRequestPage) {
-        List<BffRequestEntity> bffRequests = bffRequestPage.getContent();
-        List<BffRequestDto> questionDtos = new ArrayList<>();
+    private BffRequestDto mapToBffRequestDto(BffRequestEntity bffRequestEntity) {
+        return modelMapper.map(bffRequestEntity, BffRequestDto.class);
+    }
 
-        ModelMapper modelMapper = new ModelMapper();
+    private List<BffRequestDto> mapToBffRequestDtoList(List<BffRequestEntity> bffRequestEntities) {
+        return modelMapper.map(bffRequestEntities, new TypeToken<List<BffRequestDto>>() {
+        }.getType());
+    }
 
-        for (BffRequestEntity bffRequestEntity : bffRequests) {
-            BffRequestDto bffRequestDto = modelMapper.map(bffRequestEntity, BffRequestDto.class);
-            questionDtos.add(bffRequestDto);
-        }
+    private PagedResponse<BffRequestDto> mapToBffRequestDtoPage(Page<BffRequestEntity> bffRequestEntityPage) {
+        List<BffRequestEntity> bffRequestEntities = bffRequestEntityPage.getContent();
+        List<BffRequestDto> bffRequestDtos = mapToBffRequestDtoList(bffRequestEntities);
 
-        return new PagedResponse<>(questionDtos, bffRequestPage.getNumber(), bffRequestPage.getSize(),
-                bffRequestPage.getTotalElements(), bffRequestPage.getTotalPages(),
-                bffRequestPage.isFirst(), bffRequestPage.isLast());
+        return new PagedResponse<>(bffRequestDtos, bffRequestEntityPage.getNumber(), bffRequestEntityPage.getSize(),
+                bffRequestEntityPage.getTotalElements(), bffRequestEntityPage.getTotalPages(),
+                bffRequestEntityPage.isFirst(), bffRequestEntityPage.isLast());
     }
 }

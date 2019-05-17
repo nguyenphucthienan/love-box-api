@@ -2,12 +2,13 @@ package com.thienan.lovebox.service;
 
 import com.thienan.lovebox.shared.dto.BffRequestDto;
 import com.thienan.lovebox.utils.PagedResponse;
+import org.springframework.data.domain.Pageable;
 
 public interface BffRequestService {
 
-    PagedResponse<BffRequestDto> getSentBffRequestByUserId(Long userId, int page, int size);
+    PagedResponse<BffRequestDto> getSentBffRequestByUserId(Long userId, Pageable pageable);
 
-    PagedResponse<BffRequestDto> getReceivedBffRequestByUserId(Long userId, int page, int size);
+    PagedResponse<BffRequestDto> getReceivedBffRequestByUserId(Long userId, Pageable pageable);
 
     BffRequestDto getBffRequest(Long id);
 

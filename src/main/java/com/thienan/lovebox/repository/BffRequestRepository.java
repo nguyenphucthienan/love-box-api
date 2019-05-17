@@ -19,11 +19,11 @@ public interface BffRequestRepository extends JpaRepository<BffRequestEntity, Lo
 
     @Query(value = "select r from BffRequestEntity r where r.fromUser.id = :userId",
             countQuery = "select count(r) from BffRequestEntity r where r.fromUser.id = :userId")
-    Page<BffRequestEntity> findAllSentBffRequestsByUserId(@Param("userId") Long userId, Pageable pageableRequest);
+    Page<BffRequestEntity> findAllSentBffRequestsByUserId(@Param("userId") Long userId, Pageable pageable);
 
     @Query(value = "select r from BffRequestEntity r where r.toUser.id = :userId",
             countQuery = "select count(r) from BffRequestEntity r where r.toUser.id = :userId")
-    Page<BffRequestEntity> findAllReceivedBffRequestsByUserId(@Param("userId") Long userId, Pageable pageableRequest);
+    Page<BffRequestEntity> findAllReceivedBffRequestsByUserId(@Param("userId") Long userId, Pageable pageable);
 
     @Transactional
     @Modifying
