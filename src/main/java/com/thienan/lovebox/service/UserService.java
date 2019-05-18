@@ -22,7 +22,7 @@ public interface UserService {
 
     Boolean checkUserHasFollow(Long id, Long followedUserId);
 
-    PagedResponse<UserDto> findUsers(String username, Pageable pageable);
+    PagedResponse<UserDto> searchUsers(String username, Pageable pageable);
 
     PagedResponse<UserDto> getFollowing(Long id, Pageable pageable);
 

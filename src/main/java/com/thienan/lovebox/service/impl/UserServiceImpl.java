@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PagedResponse<UserDto> findUsers(String username, Pageable pageable) {
+    public PagedResponse<UserDto> searchUsers(String username, Pageable pageable) {
         Page<UserEntity> userPage = userRepository.findAllByUsername(username, pageable);
         return mapToUserDtoPage(userPage);
     }

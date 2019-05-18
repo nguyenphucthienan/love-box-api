@@ -97,7 +97,7 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     public PagedResponse<UserBriefDetailResponse> searchUsers(@RequestParam(value = "username") @Size(min = 3, max = 20) String username,
                                                               Pageable pageable) {
-        PagedResponse<UserDto> users = userService.findUsers(username, pageable);
+        PagedResponse<UserDto> users = userService.searchUsers(username, pageable);
         return mapToUserBriefDetailResponsePage(users);
     }
 
