@@ -133,6 +133,19 @@ public class BffRequestController {
         return new ApiResponse(true, "Approve BFF request successfully");
     }
 
+    @PostMapping("/break-up")
+    @PreAuthorize("hasRole('USER')")
+    public ApiResponse breakUp(@CurrentUser UserPrincipal currentUser){
+        UserDto userDto = userService.getUserById(currentUser.getId());
+
+        if (userDto.getBffDetail() == null) {
+            throw new BadRequestException("This user do not have BFF");
+        }
+
+        bffRequestService.breakUp(currentUser.getId());
+        return new ApiResponse(true, "Break up successfully");
+    }
+
     @PostMapping("/{id}/reject")
     @PreAuthorize("hasRole('USER')")
     public ApiResponse rejectBffRequest(@CurrentUser UserPrincipal currentUser,

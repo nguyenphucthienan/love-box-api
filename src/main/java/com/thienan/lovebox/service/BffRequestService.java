@@ -25,4 +25,6 @@ public interface BffRequestService {
     void deleteBffRequest(Long id);
 
     void deleteAllBffRequestsByUserId(Long userId);
+
+    void breakUp(Long userId);
 }

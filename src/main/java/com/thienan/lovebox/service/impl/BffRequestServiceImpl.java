@@ -124,6 +124,25 @@ public class BffRequestServiceImpl implements BffRequestService {
         bffRequestRepository.deleteAllByUserId(userId);
     }
 
+    @Override
+    public void breakUp(Long userId) {
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new SingleQuestionServiceException("User with ID " + userId + " not found"));
+
+        BffDetailEntity bffDetailEntity = userEntity.getBffDetail();
+        if (bffDetailEntity != null) {
+            UserEntity firstUserEntity = bffDetailEntity.getFirstUser();
+            UserEntity secondUserEntity = bffDetailEntity.getSecondUser();
+
+            firstUserEntity.setBffDetail(null);
+            secondUserEntity.setBffDetail(null);
+
+            bffDetailRepository.delete(bffDetailEntity);
+            userRepository.save(firstUserEntity);
+            userRepository.save(secondUserEntity);
+        }
+    }
+
     private BffRequestEntity mapToBffRequestEntity(BffRequestDto bffRequestDto) {
         return modelMapper.map(bffRequestDto, BffRequestEntity.class);
     }
