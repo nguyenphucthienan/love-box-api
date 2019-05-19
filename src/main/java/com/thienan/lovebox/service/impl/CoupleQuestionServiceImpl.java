@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +41,13 @@ public class CoupleQuestionServiceImpl implements CoupleQuestionService {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new CoupleQuestionServiceException("User with ID " + userId + " not found"));
 
-        Page<CoupleQuestionEntity> questionPage = coupleQuestionRepository.findAllQuestionsByUserId(userId, answered, pageable);
+        Page<CoupleQuestionEntity> questionPage;
+        if (answered) {
+            questionPage = coupleQuestionRepository.findAllAnsweredQuestionsByUserId(userId, pageable);
+        } else {
+            questionPage = coupleQuestionRepository.findAllUnansweredQuestionsByUserId(userId, pageable);
+        }
+
         return mapToCoupleQuestionDtoPage(questionPage);
     }
 
@@ -59,8 +67,34 @@ public class CoupleQuestionServiceImpl implements CoupleQuestionService {
     }
 
     @Override
-    public CoupleQuestionDto answerQuestion(Long id, String answerText) {
-        return null;
+    @Transactional
+    public CoupleQuestionDto answerQuestion(Long id, Long userId, String answerText) {
+        CoupleQuestionEntity coupleQuestionEntity = coupleQuestionRepository.findById(id)
+                .orElseThrow(() -> new CoupleQuestionServiceException("Couple question with ID " + id + " not found"));
+
+        if (coupleQuestionEntity.isAnswered()) {
+            throw new CoupleQuestionServiceException("Couple question has been answered");
+        }
+
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new CoupleQuestionServiceException("User with ID " + userId + " not found"));
+
+        if (userEntity.getId().equals(coupleQuestionEntity.getFirstAnswerer().getId())) {
+            coupleQuestionRepository.answerQuestionByFirstAnswerer(id, Instant.now(), answerText);
+            if (coupleQuestionEntity.getSecondAnswerText() != null) {
+                coupleQuestionRepository.setAnsweredQuestion(Instant.now(), true);
+            }
+        } else if (userEntity.getId().equals(coupleQuestionEntity.getSecondAnswerer().getId())) {
+            coupleQuestionRepository.answerQuestionBySecondAnswerer(id, Instant.now(), answerText);
+            if (coupleQuestionEntity.getFirstAnswerText() != null) {
+                coupleQuestionRepository.setAnsweredQuestion(Instant.now(), true);
+            }
+        }
+
+        CoupleQuestionEntity answeredCoupleQuestionEntity = coupleQuestionRepository.findById(id)
+                .orElseThrow(() -> new CoupleQuestionServiceException("Couple question with ID " + id + " not found"));
+
+        return mapToCoupleQuestionDto(answeredCoupleQuestionEntity);
     }
 
     @Override
@@ -89,7 +123,7 @@ public class CoupleQuestionServiceImpl implements CoupleQuestionService {
     private List<CoupleQuestionDto> mapToListCoupleQuestionDto(List<CoupleQuestionEntity> coupleQuestionEntities) {
         List<CoupleQuestionDto> coupleQuestionDtos = new ArrayList<>();
 
-        for (CoupleQuestionEntity coupleQuestionEntity: coupleQuestionEntities) {
+        for (CoupleQuestionEntity coupleQuestionEntity : coupleQuestionEntities) {
             CoupleQuestionDto coupleQuestionDto = mapToCoupleQuestionDto(coupleQuestionEntity);
             coupleQuestionDtos.add(coupleQuestionDto);
         }

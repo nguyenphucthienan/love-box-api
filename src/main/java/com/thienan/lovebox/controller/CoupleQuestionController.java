@@ -2,6 +2,7 @@ package com.thienan.lovebox.controller;
 
 import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.ForbiddenException;
+import com.thienan.lovebox.payload.request.AnswerCoupleQuestionRequest;
 import com.thienan.lovebox.payload.request.AskCoupleQuestionRequest;
 import com.thienan.lovebox.payload.response.CoupleQuestionResponse;
 import com.thienan.lovebox.security.CurrentUser;
@@ -62,6 +63,11 @@ public class CoupleQuestionController {
             throw new BadRequestException("This user does not have BFF");
         }
 
+        if (bffDetailDto.getFirstUser().getId().equals(currentUser.getId())
+                || bffDetailDto.getSecondUser().getId().equals(currentUser.getId())) {
+            throw new BadRequestException("Cannot ask question");
+        }
+
         CoupleQuestionDto coupleQuestionDto = modelMapper.map(askCoupleQuestionRequest, CoupleQuestionDto.class);
         coupleQuestionDto.setQuestioner(questioner);
         coupleQuestionDto.setFirstAnswerer(bffDetailDto.getFirstUser());
@@ -84,7 +90,7 @@ public class CoupleQuestionController {
         }
 
         if ((!coupleQuestionDto.getFirstAnswerer().getId().equals(currentUser.getId())
-                || !coupleQuestionDto.getSecondAnswerer().getId().equals(currentUser.getId()))
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(currentUser.getId()))
                 && !coupleQuestionDto.isAnswered()) {
             throw new BadRequestException("Question has not been answered");
         }
@@ -92,17 +98,41 @@ public class CoupleQuestionController {
         return mapToCoupleQuestionResponse(coupleQuestionDto);
     }
 
+    @PostMapping("/{id}/answer")
+    @PreAuthorize("hasRole('USER')")
+    public CoupleQuestionResponse answerCoupleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                       @PathVariable("userId") Long userId,
+                                                       @PathVariable("id") Long id,
+                                                       @Valid @RequestBody AnswerCoupleQuestionRequest answerCoupleQuestionRequest) {
+        CoupleQuestionDto coupleQuestionDto = coupleQuestionService.getQuestion(id);
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(userId)
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(userId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(currentUser.getId())
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(userId)) {
+            throw new ForbiddenException("Cannot answer this question");
+        }
+
+        CoupleQuestionDto answeredCoupleQuestionDto = coupleQuestionService
+                .answerQuestion(id, currentUser.getId(), answerCoupleQuestionRequest.getAnswerText());
+
+        return mapToCoupleQuestionResponse(answeredCoupleQuestionDto);
+    }
+
     private CoupleQuestionResponse mapToCoupleQuestionResponse(CoupleQuestionDto coupleQuestionDto) {
         return modelMapper.map(coupleQuestionDto, CoupleQuestionResponse.class);
     }
 
     private PagedResponse<CoupleQuestionResponse> mapToCoupleQuestionResponsePage(PagedResponse<CoupleQuestionDto> coupleQuestionDtos) {
-        List<CoupleQuestionResponse> singleQuestionResponses = modelMapper.map(
+        List<CoupleQuestionResponse> coupleQuestionResponses = modelMapper.map(
                 coupleQuestionDtos.getContent(),
                 new TypeToken<List<CoupleQuestionResponse>>() {
                 }.getType()
         );
 
-        return new PagedResponse<>(singleQuestionResponses, coupleQuestionDtos.getPagination());
+        return new PagedResponse<>(coupleQuestionResponses, coupleQuestionDtos.getPagination());
     }
 }

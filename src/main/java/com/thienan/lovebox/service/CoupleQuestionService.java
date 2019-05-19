@@ -14,7 +14,7 @@ public interface CoupleQuestionService {
 
     CoupleQuestionDto createQuestion(CoupleQuestionDto singleQuestionDto);
 
-    CoupleQuestionDto answerQuestion(Long id, String answerText);
+    CoupleQuestionDto answerQuestion(Long id, Long userId, String answerText);
 
     CoupleQuestionDto unanswerQuestion(Long id);
 
