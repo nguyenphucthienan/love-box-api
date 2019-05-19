@@ -4,6 +4,7 @@ import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.ForbiddenException;
 import com.thienan.lovebox.payload.request.AnswerCoupleQuestionRequest;
 import com.thienan.lovebox.payload.request.AskCoupleQuestionRequest;
+import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.payload.response.CoupleQuestionResponse;
 import com.thienan.lovebox.security.CurrentUser;
 import com.thienan.lovebox.security.UserPrincipal;
@@ -174,6 +175,27 @@ public class CoupleQuestionController {
 
         CoupleQuestionDto lovedCoupleQuestionDto = coupleQuestionService.loveOrUnloveQuestion(id, currentUser.getId());
         return mapToCoupleQuestionResponse(lovedCoupleQuestionDto);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ApiResponse deleteCoupleQuestion(@CurrentUser UserPrincipal currentUser,
+                                            @PathVariable("userId") Long userId,
+                                            @PathVariable("id") Long id) {
+        CoupleQuestionDto coupleQuestionDto = coupleQuestionService.getQuestion(id);
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(userId)
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(userId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(currentUser.getId())
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot delete this question");
+        }
+
+        coupleQuestionService.deleteQuestion(id);
+        return new ApiResponse(true, "Delete couple question successfully");
     }
 
     private CoupleQuestionResponse mapToCoupleQuestionResponse(CoupleQuestionDto coupleQuestionDto) {

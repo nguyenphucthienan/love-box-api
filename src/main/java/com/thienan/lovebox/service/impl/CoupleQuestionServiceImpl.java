@@ -143,7 +143,14 @@ public class CoupleQuestionServiceImpl implements CoupleQuestionService {
 
     @Override
     public void deleteQuestion(Long id) {
+        CoupleQuestionEntity coupleQuestionEntity = coupleQuestionRepository.findById(id)
+                .orElseThrow(() -> new CoupleQuestionServiceException("Couple question with ID " + id + " not found"));
 
+        if (coupleQuestionEntity.isAnswered()) {
+            throw new CoupleQuestionServiceException("Couple question has been answered");
+        }
+
+        coupleQuestionRepository.delete(coupleQuestionEntity);
     }
 
     private CoupleQuestionEntity mapToCoupleQuestionEntity(CoupleQuestionDto coupleQuestionDto) {
