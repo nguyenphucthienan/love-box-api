@@ -36,6 +36,19 @@ public class CoupleQuestionController {
     @Autowired
     ModelMapper modelMapper;
 
+    @GetMapping("/news-feed")
+    @PreAuthorize("hasRole('USER')")
+    public PagedResponse<CoupleQuestionResponse> getQuestionsInNewsFeed(@CurrentUser UserPrincipal currentUser,
+                                                                        @PathVariable("userId") Long userId,
+                                                                        Pageable pageable) {
+        if (!userId.equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot get news feed of this user");
+        }
+
+        PagedResponse<CoupleQuestionDto> questions = coupleQuestionService.getQuestionsInNewsFeed(userId, pageable);
+        return mapToCoupleQuestionResponsePage(questions);
+    }
+
     @GetMapping()
     @PreAuthorize("hasRole('USER')")
     public PagedResponse<CoupleQuestionResponse> getQuestions(@CurrentUser UserPrincipal currentUser,
@@ -120,6 +133,27 @@ public class CoupleQuestionController {
                 .answerQuestion(id, currentUser.getId(), answerCoupleQuestionRequest.getAnswerText());
 
         return mapToCoupleQuestionResponse(answeredCoupleQuestionDto);
+    }
+
+    @PostMapping("/{id}/unanswer")
+    @PreAuthorize("hasRole('USER')")
+    public CoupleQuestionResponse unanswerCoupleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                         @PathVariable("userId") Long userId,
+                                                         @PathVariable("id") Long id) {
+        CoupleQuestionDto coupleQuestionDto = coupleQuestionService.getQuestion(id);
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(userId)
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(userId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(currentUser.getId())
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Cannot unanswer this question");
+        }
+
+        CoupleQuestionDto unansweredCoupleQuestionDto = coupleQuestionService.unanswerQuestion(id);
+        return mapToCoupleQuestionResponse(unansweredCoupleQuestionDto);
     }
 
     private CoupleQuestionResponse mapToCoupleQuestionResponse(CoupleQuestionDto coupleQuestionDto) {
