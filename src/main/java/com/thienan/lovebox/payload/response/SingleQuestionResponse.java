@@ -7,7 +7,6 @@ public class SingleQuestionResponse {
 
     private Long id;
     private Instant createdAt;
-    private UserBriefDetailResponse questioner;
     private UserBriefDetailResponse answerer;
     private String questionText;
     private String answerText;
@@ -29,14 +28,6 @@ public class SingleQuestionResponse {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public UserBriefDetailResponse getQuestioner() {
-        return questioner;
-    }
-
-    public void setQuestioner(UserBriefDetailResponse questioner) {
-        this.questioner = questioner;
     }
 
     public UserBriefDetailResponse getAnswerer() {

@@ -2,6 +2,7 @@ package com.thienan.lovebox.controller;
 
 import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.exception.ForbiddenException;
+import com.thienan.lovebox.exception.NotFoundException;
 import com.thienan.lovebox.payload.request.BffRequestRequest;
 import com.thienan.lovebox.payload.response.ApiResponse;
 import com.thienan.lovebox.payload.response.BffRequestResponse;
@@ -80,6 +81,11 @@ public class BffRequestController {
     public BffRequestResponse checkBffRequestExists(@RequestParam(value = "fromUserId") Long fromUserId,
                                                     @RequestParam(value = "toUserId") Long toUserId) {
         BffRequestDto bffRequestDto = bffRequestService.getBffRequestByFromUserIdAndToUserId(fromUserId, toUserId);
+
+        if (bffRequestDto == null) {
+            throw new NotFoundException("BFF request not found");
+        }
+
         return mapToBffRequestResponse(bffRequestDto);
     }
 

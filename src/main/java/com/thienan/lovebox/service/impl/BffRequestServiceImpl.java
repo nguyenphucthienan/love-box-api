@@ -67,7 +67,11 @@ public class BffRequestServiceImpl implements BffRequestService {
         BffRequestEntity bffRequestEntity = bffRequestRepository.findByFromUserIdAndToUserId(fromUserId, toUserId)
                 .orElse(null);
 
-        return mapToBffRequestDto(bffRequestEntity);
+        if (bffRequestEntity != null) {
+            return mapToBffRequestDto(bffRequestEntity);
+        }
+
+        return null;
     }
 
     @Override
