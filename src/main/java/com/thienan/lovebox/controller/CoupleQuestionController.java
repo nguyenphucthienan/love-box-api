@@ -156,6 +156,26 @@ public class CoupleQuestionController {
         return mapToCoupleQuestionResponse(unansweredCoupleQuestionDto);
     }
 
+    @PostMapping("/{id}/love")
+    @PreAuthorize("hasRole('USER')")
+    public CoupleQuestionResponse loveOrUnloveCoupleQuestion(@CurrentUser UserPrincipal currentUser,
+                                                             @PathVariable("userId") Long userId,
+                                                             @PathVariable("id") Long id) {
+        CoupleQuestionDto coupleQuestionDto = coupleQuestionService.getQuestion(id);
+
+        if (!coupleQuestionDto.getFirstAnswerer().getId().equals(userId)
+                && !coupleQuestionDto.getSecondAnswerer().getId().equals(userId)) {
+            throw new BadRequestException("User ID and Question ID do not match");
+        }
+
+        if (!coupleQuestionDto.isAnswered()) {
+            throw new BadRequestException("Question has not been answered");
+        }
+
+        CoupleQuestionDto lovedCoupleQuestionDto = coupleQuestionService.loveOrUnloveQuestion(id, currentUser.getId());
+        return mapToCoupleQuestionResponse(lovedCoupleQuestionDto);
+    }
+
     private CoupleQuestionResponse mapToCoupleQuestionResponse(CoupleQuestionDto coupleQuestionDto) {
         return modelMapper.map(coupleQuestionDto, CoupleQuestionResponse.class);
     }

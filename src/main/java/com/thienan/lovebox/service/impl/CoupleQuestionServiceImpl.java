@@ -124,7 +124,21 @@ public class CoupleQuestionServiceImpl implements CoupleQuestionService {
 
     @Override
     public CoupleQuestionDto loveOrUnloveQuestion(Long id, Long userId) {
-        return null;
+        CoupleQuestionEntity coupleQuestionEntity = coupleQuestionRepository.findById(id)
+                .orElseThrow(() -> new CoupleQuestionServiceException("Couple question with ID " + id + " not found"));
+
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() ->
+                new CoupleQuestionServiceException("User with ID " + id + " not found")
+        );
+
+        if (!coupleQuestionEntity.getLoves().contains(userEntity)) {
+            coupleQuestionEntity.getLoves().add(userEntity);
+        } else {
+            coupleQuestionEntity.getLoves().remove(userEntity);
+        }
+
+        CoupleQuestionEntity lovedCoupleQuestionEntity = coupleQuestionRepository.save(coupleQuestionEntity);
+        return mapToCoupleQuestionDto(lovedCoupleQuestionEntity);
     }
 
     @Override

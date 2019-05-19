@@ -13,7 +13,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -110,7 +109,7 @@ public class SingleQuestionServiceImpl implements SingleQuestionService {
                 .orElseThrow(() -> new SingleQuestionServiceException("Single question with ID " + id + " not found"));
 
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(() ->
-                new UsernameNotFoundException("User with ID " + id + " not found")
+                new SingleQuestionServiceException("User with ID " + id + " not found")
         );
 
         if (!singleQuestionEntity.getLoves().contains(userEntity)) {
