@@ -3,6 +3,7 @@ package com.thienan.lovebox.controller;
 import com.thienan.lovebox.exception.BadRequestException;
 import com.thienan.lovebox.payload.request.UserSignInRequest;
 import com.thienan.lovebox.payload.request.UserSignUpRequest;
+import com.thienan.lovebox.payload.request.UserUpdateRequest;
 import com.thienan.lovebox.payload.response.JwtAuthenticationResponse;
 import com.thienan.lovebox.payload.response.UserResponse;
 import com.thienan.lovebox.security.CurrentUser;
@@ -57,6 +58,15 @@ public class AuthController {
     public UserResponse getCurrentUser(@CurrentUser UserPrincipal currentUser) {
         UserDto userDto = userService.getUserById(currentUser.getId());
         return mapToUserResponse(userDto);
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    public UserResponse updateUserInfo(@CurrentUser UserPrincipal currentUser,
+                                       @RequestBody UserUpdateRequest userUpdateRequest) {
+        UserDto userDto = modelMapper.map(userUpdateRequest, UserDto.class);
+        UserDto updatedUserDto = userService.updateUser(currentUser.getId(), userDto);
+        return mapToUserResponse(updatedUserDto);
     }
 
     private UserResponse mapToUserResponse(UserDto userDto) {

@@ -10,7 +10,9 @@ public interface UserService {
 
     UserDto getUserById(Long id);
 
-    UserDto createUser(UserDto user);
+    UserDto createUser(UserDto userDto);
+
+    UserDto updateUser(Long id, UserDto userDto);
 
     Boolean checkUsernameAvailability(String username);
 
