@@ -14,6 +14,8 @@ public interface UserService {
 
     UserDto updateUser(Long id, UserDto userDto);
 
+    UserDto changeUserPassword(Long id, String newPassword);
+
     Boolean checkUsernameAvailability(String username);
 
     Boolean checkEmailAvailability(String email);

@@ -97,6 +97,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto changeUserPassword(Long id, String newPassword) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserServiceException("User with ID " + id + " not found"));
+
+        userEntity.setPassword(bCryptPasswordEncoder.encode(newPassword));
+        UserEntity savedUser = userRepository.save(userEntity);
+
+        return mapToUserDto(savedUser);
+    }
+
+    @Override
     public Boolean checkUsernameAvailability(String username) {
         return !userRepository.existsByUsername(username);
     }

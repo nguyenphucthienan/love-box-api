@@ -1,6 +1,7 @@
 package com.thienan.lovebox.controller;
 
 import com.thienan.lovebox.exception.BadRequestException;
+import com.thienan.lovebox.payload.request.UserChangePasswordRequest;
 import com.thienan.lovebox.payload.request.UserSignInRequest;
 import com.thienan.lovebox.payload.request.UserSignUpRequest;
 import com.thienan.lovebox.payload.request.UserUpdateRequest;
@@ -66,6 +67,14 @@ public class AuthController {
                                        @RequestBody UserUpdateRequest userUpdateRequest) {
         UserDto userDto = modelMapper.map(userUpdateRequest, UserDto.class);
         UserDto updatedUserDto = userService.updateUser(currentUser.getId(), userDto);
+        return mapToUserResponse(updatedUserDto);
+    }
+
+    @PutMapping("/me/password")
+    @PreAuthorize("hasRole('USER')")
+    public UserResponse changeUserPassword(@CurrentUser UserPrincipal currentUser,
+                                           @RequestBody UserChangePasswordRequest userChangePasswordRequest) {
+        UserDto updatedUserDto = userService.changeUserPassword(currentUser.getId(), userChangePasswordRequest.getNewPassword());
         return mapToUserResponse(updatedUserDto);
     }
 
