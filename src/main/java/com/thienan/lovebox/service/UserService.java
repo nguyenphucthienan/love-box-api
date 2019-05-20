@@ -3,6 +3,7 @@ package com.thienan.lovebox.service;
 import com.thienan.lovebox.shared.dto.UserDto;
 import com.thienan.lovebox.utils.PagedResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
 
@@ -13,6 +14,8 @@ public interface UserService {
     UserDto createUser(UserDto userDto);
 
     UserDto updateUser(Long id, UserDto userDto);
+
+    UserDto changeUserPhoto(Long id, MultipartFile multipartFile);
 
     UserDto changeUserPassword(Long id, String newPassword);
 

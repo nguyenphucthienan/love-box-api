@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -156,8 +157,14 @@ public class BffRequestServiceImpl implements BffRequestService {
     }
 
     private List<BffRequestDto> mapToBffRequestDtoList(List<BffRequestEntity> bffRequestEntities) {
-        return modelMapper.map(bffRequestEntities, new TypeToken<List<BffRequestDto>>() {
-        }.getType());
+        List<BffRequestDto> bffRequestDtos = new ArrayList<>();
+
+        for(BffRequestEntity bffRequestEntity: bffRequestEntities) {
+            BffRequestDto bffRequestDto = mapToBffRequestDto(bffRequestEntity);
+            bffRequestDtos.add(bffRequestDto);
+        }
+
+        return bffRequestDtos;
     }
 
     private PagedResponse<BffRequestDto> mapToBffRequestDtoPage(Page<BffRequestEntity> bffRequestEntityPage) {

@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
@@ -75,6 +76,14 @@ public class AuthController {
     public UserResponse changeUserPassword(@CurrentUser UserPrincipal currentUser,
                                            @RequestBody UserChangePasswordRequest userChangePasswordRequest) {
         UserDto updatedUserDto = userService.changeUserPassword(currentUser.getId(), userChangePasswordRequest.getNewPassword());
+        return mapToUserResponse(updatedUserDto);
+    }
+
+    @PostMapping("/me/photo")
+    @PreAuthorize("hasRole('USER')")
+    public UserResponse changeUserPhoto(@CurrentUser UserPrincipal currentUser,
+                                        @RequestParam("file") MultipartFile multipartFile) {
+        UserDto updatedUserDto = userService.changeUserPhoto(currentUser.getId(), multipartFile);
         return mapToUserResponse(updatedUserDto);
     }
 

@@ -7,8 +7,8 @@ public class UserResponse {
     private String email;
     private String firstName;
     private String lastName;
-    private String photoUrl;
     private String moodMessage;
+    private PhotoResponse photo;
     private int followingCount;
     private int followersCount;
     private BffDetailResponse bffDetail;
@@ -54,20 +54,20 @@ public class UserResponse {
         this.lastName = lastName;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
     public String getMoodMessage() {
         return moodMessage;
     }
 
     public void setMoodMessage(String moodMessage) {
         this.moodMessage = moodMessage;
+    }
+
+    public PhotoResponse getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(PhotoResponse photo) {
+        this.photo = photo;
     }
 
     public int getFollowingCount() {

@@ -29,10 +29,11 @@ public class UserEntity extends DateAudit {
     @Column(nullable = false)
     private String password;
 
-    private String photoUrl;
-
     @Column(length = 50)
     private String moodMessage;
+
+    @OneToOne
+    private PhotoEntity photo;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
@@ -56,14 +57,13 @@ public class UserEntity extends DateAudit {
     public UserEntity() {
     }
 
-    public UserEntity(String username, String email, String firstName, String lastName, String password,
-                      String photoUrl, String moodMessage, BffDetailEntity bffDetail) {
+    public UserEntity(String username, String email, String firstName, String lastName,
+                      String password, String moodMessage, BffDetailEntity bffDetail) {
         this.username = username;
         this.email = email;
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
-        this.photoUrl = photoUrl;
         this.moodMessage = moodMessage;
         this.bffDetail = bffDetail;
     }
@@ -116,20 +116,20 @@ public class UserEntity extends DateAudit {
         this.password = password;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
     public String getMoodMessage() {
         return moodMessage;
     }
 
     public void setMoodMessage(String moodMessage) {
         this.moodMessage = moodMessage;
+    }
+
+    public PhotoEntity getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(PhotoEntity photo) {
+        this.photo = photo;
     }
 
     public Set<RoleEntity> getRoles() {

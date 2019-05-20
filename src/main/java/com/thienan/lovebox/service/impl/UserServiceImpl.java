@@ -1,5 +1,6 @@
 package com.thienan.lovebox.service.impl;
 
+import com.thienan.lovebox.entity.PhotoEntity;
 import com.thienan.lovebox.entity.RoleEntity;
 import com.thienan.lovebox.entity.RoleName;
 import com.thienan.lovebox.entity.UserEntity;
@@ -7,7 +8,9 @@ import com.thienan.lovebox.exception.service.UserServiceException;
 import com.thienan.lovebox.repository.RoleRepository;
 import com.thienan.lovebox.repository.UserRepository;
 import com.thienan.lovebox.security.JwtTokenProvider;
+import com.thienan.lovebox.service.PhotoService;
 import com.thienan.lovebox.service.UserService;
+import com.thienan.lovebox.shared.dto.PhotoDto;
 import com.thienan.lovebox.shared.dto.UserDto;
 import com.thienan.lovebox.utils.PagedResponse;
 import org.modelmapper.ModelMapper;
@@ -22,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +41,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     AuthenticationManager authenticationManager;
+
+    @Autowired
+    PhotoService photoService;
 
     @Autowired
     JwtTokenProvider jwtTokenProvider;
@@ -91,6 +98,19 @@ public class UserServiceImpl implements UserService {
         userEntity.setEmail(userDto.getEmail());
         userEntity.setFirstName(userDto.getFirstName());
         userEntity.setLastName(userDto.getLastName());
+
+        UserEntity savedUserEntity = userRepository.save(userEntity);
+        return mapToUserDto(savedUserEntity);
+    }
+
+    @Override
+    public UserDto changeUserPhoto(Long id, MultipartFile multipartFile) {
+        UserEntity userEntity = userRepository.findById(id)
+                .orElseThrow(() -> new UserServiceException("User with ID " + id + " not found"));
+
+        PhotoDto photoDto = photoService.uploadFile(multipartFile);
+        PhotoEntity photoEntity = mapToPhotoEntity(photoDto);
+        userEntity.setPhoto(photoEntity);
 
         UserEntity savedUserEntity = userRepository.save(userEntity);
         return mapToUserDto(savedUserEntity);
@@ -196,5 +216,9 @@ public class UserServiceImpl implements UserService {
         return new PagedResponse<>(userDtos, userEntityPage.getNumber(), userEntityPage.getSize(),
                 userEntityPage.getTotalElements(), userEntityPage.getTotalPages(),
                 userEntityPage.isFirst(), userEntityPage.isLast());
+    }
+
+    private PhotoEntity mapToPhotoEntity(PhotoDto photoDto) {
+        return modelMapper.map(photoDto, PhotoEntity.class);
     }
 }

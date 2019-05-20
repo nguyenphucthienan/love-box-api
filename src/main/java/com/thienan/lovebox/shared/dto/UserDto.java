@@ -11,8 +11,8 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String password;
-    private String photoUrl;
     private String moodMessage;
+    private PhotoDto photo;
     private Set<RoleDto> roles = new HashSet<>();
     private Set<UserDto> following = new HashSet<>();
     private Set<UserDto> followers = new HashSet<>();
@@ -66,20 +66,20 @@ public class UserDto {
         this.password = password;
     }
 
-    public String getPhotoUrl() {
-        return photoUrl;
-    }
-
-    public void setPhotoUrl(String photoUrl) {
-        this.photoUrl = photoUrl;
-    }
-
     public String getMoodMessage() {
         return moodMessage;
     }
 
     public void setMoodMessage(String moodMessage) {
         this.moodMessage = moodMessage;
+    }
+
+    public PhotoDto getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(PhotoDto photo) {
+        this.photo = photo;
     }
 
     public Set<RoleDto> getRoles() {
